@@ -1,0 +1,8 @@
+{
+  "name": "White Haven Café - Specialty Coffee & Online Ordering",
+  "description": "Official White Haven Café ordering website. Explore our menu of specialty coffees and refreshing beverages, customize your order, choose pickup or in-store dining, and pay with cash, card, or GCash.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

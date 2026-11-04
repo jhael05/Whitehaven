@@ -28,13 +28,6 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenSocialModal, s
             </p>
             <div className="flex items-center gap-2 pt-1">
               <span className="text-xs text-[#DECDBE] font-medium">{CAFE_INFO.handle}</span>
-              <button
-                type="button"
-                onClick={onOpenSocialModal}
-                className="text-[11px] text-amber-300 underline font-semibold ml-2"
-              >
-                Social Links
-              </button>
             </div>
           </div>
 

@@ -149,14 +149,6 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
                     </a>
                   </div>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={onOpenSocialModal}
-                  className="text-xs font-semibold text-[#8C5332] hover:text-[#5D4037] underline"
-                >
-                  Manage Social Links
-                </button>
               </div>
             </div>
 

@@ -187,8 +187,12 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
                 {/* Floating Emblem Logo Badge in bottom corner */}
                 <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-white">
                   <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-full bg-[#FAF7F2] p-1 shadow-md flex items-center justify-center shrink-0">
-                      <CafeLogo size="sm" variant="stacked" />
+                    <div className="w-11 h-11 rounded-full bg-[#FAF7F2] p-0.5 shadow-lg flex items-center justify-center shrink-0 border-2 border-white/80 overflow-hidden">
+                      <img
+                        src="/assets/aistudio/592746460_10215438614435820_8793960037591621354_n_b34158cb.jpg"
+                        alt="White Haven Café Logo"
+                        className="w-full h-full object-cover rounded-full"
+                      />
                     </div>
                     <div>
                       <div className="text-xs font-bold tracking-widest uppercase text-white drop-shadow">

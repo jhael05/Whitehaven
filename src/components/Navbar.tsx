@@ -57,7 +57,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Brand Logo matching the screenshots */}
           <button
             onClick={() => onNavigate('home')}
-            className="flex items-center text-left focus:outline-none group cursor-pointer"
+            className="flex items-center text-left focus:outline-none group cursor-pointer bg-[#FAF7F2] hover:bg-white transition-all px-3 py-1.5 rounded-2xl border border-[#D8C7B6]/80 shadow-sm active:scale-95"
           >
             <CafeLogo size="md" variant="horizontal" />
           </button>

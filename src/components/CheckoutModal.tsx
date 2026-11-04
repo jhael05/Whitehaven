@@ -1,10 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { OrderType, PaymentMethod } from '../types/cafe';
-import { X, Check, CreditCard, Banknote, Smartphone, Store, ShoppingBag, Clock, Lock, UserCheck } from 'lucide-react';
+import {
+  X,
+  Check,
+  CreditCard,
+  Banknote,
+  Smartphone,
+  Store,
+  ShoppingBag,
+  Clock,
+  Lock,
+  UserCheck,
+  Dices,
+  Shuffle,
+  Armchair,
+  Sparkles,
+  QrCode,
+} from 'lucide-react';
 import { GCashLogo, MayaLogo, CardsLogo, CashLogo } from './PaymentLogos';
 import { CafeLogo } from './CafeLogo';
+import { PaymentQRCode } from './PaymentQRCode';
+
+interface SeatOption {
+  id: string;
+  name: string;
+  area: 'Patio & Deck' | 'Indoor Lounge' | 'Espresso Bar';
+  capacity: string;
+  isOccupied: boolean;
+}
+
+const DEFAULT_SEATS: Omit<SeatOption, 'isOccupied'>[] = [
+  { id: 't1', name: 'Table 1', area: 'Indoor Lounge', capacity: '2-Seater' },
+  { id: 't2', name: 'Table 2', area: 'Indoor Lounge', capacity: '2-Seater' },
+  { id: 't3', name: 'Table 3', area: 'Indoor Lounge', capacity: '4-Seater' },
+  { id: 't4', name: 'Table 4', area: 'Indoor Lounge', capacity: '4-Seater' },
+  { id: 't5', name: 'Table 5', area: 'Indoor Lounge', capacity: '4-Seater' },
+  { id: 't6', name: 'Table 6', area: 'Indoor Lounge', capacity: '6-Seater' },
+  { id: 'p1', name: 'Patio Table 1', area: 'Patio & Deck', capacity: '2-Seater' },
+  { id: 'p2', name: 'Patio Table 2', area: 'Patio & Deck', capacity: '4-Seater' },
+  { id: 'p3', name: 'Patio Table 3', area: 'Patio & Deck', capacity: '4-Seater' },
+  { id: 'gd', name: 'Garden Deck Lounge', area: 'Patio & Deck', capacity: '6-Seater' },
+  { id: 'b1', name: 'Bar Stool 1', area: 'Espresso Bar', capacity: '1-Seater' },
+  { id: 'b2', name: 'Bar Stool 2', area: 'Espresso Bar', capacity: '1-Seater' },
+  { id: 'b3', name: 'Bar Stool 3', area: 'Espresso Bar', capacity: '1-Seater' },
+  { id: 'b4', name: 'Bar Stool 4', area: 'Espresso Bar', capacity: '1-Seater' },
+];
+
+const generateRandomizedSeats = (): SeatOption[] => {
+  return DEFAULT_SEATS.map((seat, index) => {
+    // Keep ~30% occupied, rest available for customers
+    const isOccupied = Math.random() < 0.35 && index !== 1 && index !== 3 && index !== 7;
+    return { ...seat, isOccupied };
+  });
+};
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -35,6 +85,33 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
   const [customerName, setCustomerName] = useState(user?.name || '');
   const [contactNumber, setContactNumber] = useState(user?.emailOrContact || '');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('gcash');
+
+  // Randomized seats state for Dine-In
+  const [seats, setSeats] = useState<SeatOption[]>(() => generateRandomizedSeats());
+  const [seatAreaFilter, setSeatAreaFilter] = useState<'All' | 'Patio & Deck' | 'Indoor Lounge' | 'Espresso Bar'>('All');
+  const [seatNotice, setSeatNotice] = useState<string | null>(null);
+
+  const handleRandomizeSeats = () => {
+    const fresh = generateRandomizedSeats();
+    setSeats(fresh);
+    const available = fresh.filter(s => !s.isOccupied);
+    if (available.length > 0) {
+      const randomPick = available[Math.floor(Math.random() * available.length)];
+      setTableNumber(randomPick.name);
+      setSeatNotice(`🎲 Re-shuffled tables! Assigned to ${randomPick.name} (${randomPick.capacity} • ${randomPick.area})`);
+    }
+    setTimeout(() => setSeatNotice(null), 3500);
+  };
+
+  const handlePickRandomSeat = () => {
+    const available = seats.filter(s => !s.isOccupied);
+    if (available.length > 0) {
+      const randomPick = available[Math.floor(Math.random() * available.length)];
+      setTableNumber(randomPick.name);
+      setSeatNotice(`🎲 Randomly picked ${randomPick.name} (${randomPick.capacity} • ${randomPick.area})`);
+    }
+    setTimeout(() => setSeatNotice(null), 3500);
+  };
 
   // Cash change calculation
   const [cashTendered, setCashTendered] = useState<string>('');
@@ -275,34 +352,139 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                 </p>
               </div>
             ) : (
-              <div className="mt-3 rounded-2xl bg-[#F0E6DB] p-4 border border-[#DECDBE]">
-                <label className="text-xs font-semibold text-[#5D4037] mb-1.5 block">
-                  Select Your Table / Seating Area
-                </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {[
-                    'Table 1',
-                    'Table 2',
-                    'Table 3',
-                    'Table 4',
-                    'Table 5',
-                    'Table 6',
-                    'Outdoor Garden Deck',
-                    'Bar Counter',
-                  ].map(tbl => (
+              <div className="mt-3 rounded-2xl bg-[#F0E6DB] p-4 border border-[#DECDBE] space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <label className="text-xs font-bold text-[#2C1810] block">
+                      Select Table / Seating Area
+                    </label>
+                    <p className="text-[11px] text-[#7C6656]">
+                      Choose an available table or let us assign a random cozy spot for you!
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {/* Randomize / Auto-assign button */}
                     <button
-                      key={tbl}
                       type="button"
-                      onClick={() => setTableNumber(tbl)}
-                      className={`rounded-xl py-2 px-1 text-xs font-semibold text-center transition-all border ${
-                        tableNumber === tbl
-                          ? 'bg-[#3D2517] text-white border-[#3D2517]'
-                          : 'bg-white text-[#4A2E1B] border-[#D0BFB0] hover:bg-[#FAF7F2]'
+                      onClick={handlePickRandomSeat}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#3D2517] hover:bg-[#2C1810] text-amber-200 text-xs font-bold shadow-xs transition-all active:scale-95 cursor-pointer"
+                      title="Quickly assign a random available table"
+                    >
+                      <Dices className="w-3.5 h-3.5" />
+                      <span>Randomize Seat</span>
+                    </button>
+
+                    {/* Shuffle status button */}
+                    <button
+                      type="button"
+                      onClick={handleRandomizeSeats}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white hover:bg-[#FAF7F2] text-[#5D4037] border border-[#D0BFB0] text-xs font-semibold shadow-xs transition-all cursor-pointer"
+                      title="Re-randomize seat availability in the cafe"
+                    >
+                      <Shuffle className="w-3.5 h-3.5 text-[#8C5332]" />
+                      <span className="hidden sm:inline">Shuffle</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Randomized Pick Feedback Notice */}
+                {seatNotice && (
+                  <div className="p-2.5 rounded-xl bg-amber-100 border border-amber-300 text-xs font-semibold text-amber-900 flex items-center gap-2 animate-fade-in">
+                    <span>✨</span>
+                    <span>{seatNotice}</span>
+                  </div>
+                )}
+
+                {/* Selected Table Summary Badge */}
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#D0BFB0] text-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-[#3D2517] text-white flex items-center justify-center">
+                      <Armchair className="w-4 h-4 text-amber-300" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-gray-500 uppercase font-bold block">
+                        Your Reserved Table
+                      </span>
+                      <span className="font-bold text-[#2C1810]">
+                        {tableNumber || 'Please select a table below'}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                    Dine-in Ready
+                  </span>
+                </div>
+
+                {/* Area Filter Tabs */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+                  {(['All', 'Patio & Deck', 'Indoor Lounge', 'Espresso Bar'] as const).map(zone => (
+                    <button
+                      key={zone}
+                      type="button"
+                      onClick={() => setSeatAreaFilter(zone)}
+                      className={`px-2.5 py-1 rounded-lg font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                        seatAreaFilter === zone
+                          ? 'bg-[#8C5332] text-white shadow-xs'
+                          : 'bg-white/80 text-[#5D4037] hover:bg-white'
                       }`}
                     >
-                      {tbl}
+                      {zone === 'Patio & Deck' ? '🌿 Patio & Deck' : zone === 'Indoor Lounge' ? '☕ Indoor Lounge' : zone === 'Espresso Bar' ? '🪑 Espresso Bar' : 'All Areas'}
                     </button>
                   ))}
+                </div>
+
+                {/* Seat Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-56 overflow-y-auto pr-1">
+                  {seats
+                    .filter(s => seatAreaFilter === 'All' || s.area === seatAreaFilter)
+                    .map(seat => {
+                      const isSelected = tableNumber === seat.name;
+                      return (
+                        <button
+                          key={seat.id}
+                          type="button"
+                          onClick={() => {
+                            setTableNumber(seat.name);
+                            if (seat.isOccupied) {
+                              setSeatNotice(`Note: ${seat.name} is currently occupied; seat will be cleared for your order!`);
+                              setTimeout(() => setSeatNotice(null), 3500);
+                            }
+                          }}
+                          className={`relative p-2.5 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between ${
+                            isSelected
+                              ? 'bg-[#3D2517] text-white border-[#3D2517] shadow-md ring-2 ring-amber-400/50'
+                              : seat.isOccupied
+                              ? 'bg-[#EAE4DC] border-[#D8C7B6] text-gray-500 hover:bg-[#E2DCD4]'
+                              : 'bg-white border-[#DECDBE] text-[#2C1810] hover:bg-[#FAF7F2] hover:border-[#8C5332]'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-1 mb-1">
+                            <span className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-[#2C1810]'}`}>
+                              {seat.name}
+                            </span>
+                            {isSelected ? (
+                              <Check className="w-3.5 h-3.5 text-amber-300 stroke-[3] shrink-0" />
+                            ) : seat.isOccupied ? (
+                              <span className="text-[9px] font-bold text-gray-500 bg-gray-200 px-1.5 py-0.5 rounded">
+                                Busy
+                              </span>
+                            ) : (
+                              <span className="flex h-2 w-2 rounded-full bg-emerald-500 shrink-0" title="Available" />
+                            )}
+                          </div>
+
+                          <div className="flex items-center justify-between text-[10px] mt-1">
+                            <span className={isSelected ? 'text-amber-200' : 'text-gray-500'}>
+                              {seat.capacity}
+                            </span>
+                            <span className={isSelected ? 'text-white/80' : 'text-[#8C5332] font-medium'}>
+                              {seat.isOccupied && !isSelected ? 'Occupied' : 'Available'}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
                 </div>
               </div>
             )}
@@ -445,44 +627,28 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
 
             {/* Method Details Form */}
             {paymentMethod === 'gcash' && (
-              <div className="mt-3 rounded-2xl bg-[#EBF4FF] p-4 border border-[#B9D8FF] text-xs">
-                <div className="flex items-center justify-between mb-2.5">
-                  <div className="flex items-center gap-2">
-                    <GCashLogo size="sm" className="h-6" />
-                    <span className="font-bold text-[#007DFE] text-xs">Official Merchant Payment</span>
-                  </div>
-                  <span className="rounded-full bg-[#007DFE] text-white px-2.5 py-0.5 text-[10px] font-semibold">
-                    Instant Verified
-                  </span>
-                </div>
-                <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-3 rounded-xl border border-[#CCE4FF]">
-                  {/* Simulated QR Code */}
-                  <div className="flex flex-col items-center justify-center p-2 bg-[#F9FBFF] rounded-lg border border-dashed border-[#007DFE]">
-                    <div className="w-24 h-24 bg-[#007DFE]/10 rounded flex flex-col items-center justify-center text-center p-1">
-                      <Smartphone className="w-6 h-6 text-[#007DFE] mb-1" />
-                      <span className="text-[9px] font-mono text-[#007DFE] font-bold">SCAN QR Ph</span>
-                      <span className="text-[8px] text-gray-500">White Haven Cafe</span>
-                    </div>
-                  </div>
-                  <div className="space-y-1 text-left flex-1">
-                    <p className="text-[11px] text-gray-600">Scan QR or Send Money to:</p>
-                    <p className="font-bold text-sm text-[#007DFE]">0917 842 8360</p>
-                    <p className="font-medium text-gray-800">WHITE HAVEN CAFÉ</p>
-                    <p className="text-[11px] text-gray-500">Total: <strong>₱{total}</strong></p>
-                  </div>
-                </div>
+              <div className="space-y-3">
+                <PaymentQRCode
+                  method="gcash"
+                  amount={total}
+                  merchantName="WHITE HAVEN CAFÉ"
+                  accountNumber="0917 842 8360"
+                />
 
-                <div className="mt-3">
-                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">
-                    GCash Reference Number / Sender Name
+                <div className="rounded-2xl bg-[#EBF4FF] p-3.5 border border-[#B9D8FF]">
+                  <label className="block text-[11px] font-bold text-[#007DFE] mb-1">
+                    GCash Reference Number / Sender Mobile (Required)
                   </label>
                   <input
                     type="text"
                     value={gcashRef}
                     onChange={(e) => setGcashRef(e.target.value)}
-                    placeholder="e.g. 90284729104"
-                    className="w-full rounded-xl border border-[#B9D8FF] bg-white px-3 py-2 text-xs text-[#2C1810] focus:outline-none"
+                    placeholder="e.g. 90284729104 or 0917XXXXXXX"
+                    className="w-full rounded-xl border border-[#B9D8FF] bg-white px-3.5 py-2 text-xs text-[#2C1810] focus:outline-none focus:ring-1 focus:ring-[#007DFE]"
                   />
+                  <p className="mt-1 text-[10px] text-gray-500">
+                    Once paid via GCash QR or Express Send, enter your reference number to fast-track verification.
+                  </p>
                 </div>
               </div>
             )}
@@ -582,25 +748,28 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
             )}
 
             {paymentMethod === 'maya' && (
-              <div className="mt-3 rounded-2xl bg-[#E0F2F1] p-4 border border-[#80CBC4] text-xs">
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="flex items-center gap-2">
-                    <MayaLogo size="sm" className="h-6" />
-                    <span className="font-bold text-[#00897B] text-xs">Maya / QR Ph Standard</span>
-                  </div>
-                  <span className="rounded-full bg-[#00897B] text-white px-2 py-0.5 text-[10px] font-semibold">
-                    QR Ph
-                  </span>
-                </div>
-                <p className="text-[11px] text-[#004D40] mt-0.5">
-                  Scan using Maya or any QR Ph compliant banking app (BDO, BPI, UnionBank, RCBC).
-                </p>
-                <div className="mt-2 bg-white rounded-xl p-3 border border-[#80CBC4] flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] text-gray-500">Merchant</span>
-                    <p className="font-bold text-[#00897B]">White Haven Café Quezon City</p>
-                  </div>
-                  <span className="font-bold text-sm text-[#00897B]">₱{total}</span>
+              <div className="space-y-3">
+                <PaymentQRCode
+                  method="maya"
+                  amount={total}
+                  merchantName="WHITE HAVEN CAFÉ"
+                  accountNumber="0917 842 8360"
+                />
+
+                <div className="rounded-2xl bg-[#E0F2F1] p-3.5 border border-[#80CBC4]">
+                  <label className="block text-[11px] font-bold text-[#00897B] mb-1">
+                    Maya / Bank Reference Number (Required)
+                  </label>
+                  <input
+                    type="text"
+                    value={gcashRef}
+                    onChange={(e) => setGcashRef(e.target.value)}
+                    placeholder="e.g. 782019482910 or Transaction ID"
+                    className="w-full rounded-xl border border-[#80CBC4] bg-white px-3.5 py-2 text-xs text-[#2C1810] focus:outline-none focus:ring-1 focus:ring-[#00897B]"
+                  />
+                  <p className="mt-1 text-[10px] text-gray-500">
+                    Scan using Maya or any QR Ph banking app (BDO, BPI, UnionBank, RCBC), then enter the transaction reference code.
+                  </p>
                 </div>
               </div>
             )}

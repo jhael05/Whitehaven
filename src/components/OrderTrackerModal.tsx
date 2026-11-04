@@ -1,6 +1,7 @@
 import React from 'react';
 import { Order } from '../types/cafe';
-import { X, CheckCircle2, Clock, Coffee, Printer, Store, ShoppingBag } from 'lucide-react';
+import { useCart } from '../context/CartContext';
+import { X, CheckCircle2, Clock, Coffee, Printer, Store, ShoppingBag, Sparkles, FastForward, Check } from 'lucide-react';
 
 interface OrderTrackerModalProps {
   order: Order | null;
@@ -15,13 +16,18 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
   onClose,
   onOrderAgain,
 }) => {
+  const { advanceOrderStatus } = useCart();
   if (!isOpen || !order) return null;
 
   const steps = [
-    { key: 'received', title: 'Order Received', desc: 'Sent to cafe kitchen' },
-    { key: 'preparing', title: 'Brewing & Crafting', desc: 'Barista is preparing drinks' },
-    { key: 'ready', title: order.orderType === 'pickup' ? 'Ready for Pick-up' : 'Serving to Table', desc: order.orderType === 'pickup' ? 'Available at pickup counter' : `Heading to ${order.tableNumber || 'your table'}` },
-    { key: 'completed', title: 'Order Completed', desc: 'Enjoy your coffee!' },
+    { key: 'received', title: 'Order Received', desc: 'Queued in the cafe kitchen' },
+    { key: 'preparing', title: 'Brewing & Crafting', desc: 'Barista is handcrafting your drinks' },
+    {
+      key: 'ready',
+      title: order.orderType === 'pickup' ? 'Ready for Pick-up' : 'Serving to Table',
+      desc: order.orderType === 'pickup' ? 'Available at the pick-up counter' : `Barista is heading to ${order.tableNumber || 'your table'}`,
+    },
+    { key: 'completed', title: 'Order Completed', desc: 'Served & ready to enjoy!' },
   ];
 
   const getStepIndex = (status: Order['status']) => {
@@ -69,42 +75,89 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
 
         {/* Live Status Progress Stepper */}
         <div className="p-6 bg-[#F5ECE2] border-b border-[#DECDBE]">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#5D4037]">
-              Live Order Tracker
-            </span>
-            <span className="flex items-center gap-1.5 text-xs font-semibold text-[#8C5332]">
-              <Clock className="w-3.5 h-3.5 animate-spin" />
-              {order.status === 'received' && 'Kitchen queued'}
-              {order.status === 'preparing' && 'Brewing now...'}
-              {order.status === 'ready' && 'Ready now!'}
-              {order.status === 'completed' && 'Delivered'}
-            </span>
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-[#5D4037] block">
+                Live Order Tracker • Stage {currentStep + 1} of 4
+              </span>
+              <span className="text-[11px] text-[#7C6656]">
+                {order.status === 'received' && 'Step 1/4: Order received and placed in kitchen queue'}
+                {order.status === 'preparing' && 'Step 2/4: Barista is brewing espresso & blending drinks'}
+                {order.status === 'ready' && 'Step 3/4: Freshly prepared & ready for pick-up/table'}
+                {order.status === 'completed' && 'Step 4/4: Successfully completed & served!'}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold shadow-xs ${
+                  order.status === 'completed'
+                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                    : order.status === 'ready'
+                    ? 'bg-amber-100 text-amber-900 border border-amber-300 animate-pulse'
+                    : 'bg-[#FAF7F2] text-[#8C5332] border border-[#DECDBE]'
+                }`}
+              >
+                {order.status !== 'completed' ? (
+                  <Clock className="w-3.5 h-3.5 animate-spin text-[#8C5332]" />
+                ) : (
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                )}
+                <span className="capitalize">{order.status}</span>
+              </span>
+
+              {/* Fast Forward Stage Button (Testing/Staff Action) */}
+              {order.status !== 'completed' && (
+                <button
+                  type="button"
+                  onClick={() => advanceOrderStatus(order.id)}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#3D2517] hover:bg-[#2C1810] text-amber-200 text-[10px] font-bold shadow-xs transition-colors cursor-pointer"
+                  title="Simulate barista advancing the order stage immediately"
+                >
+                  <FastForward className="w-3 h-3" />
+                  <span>Next Step</span>
+                </button>
+              )}
+            </div>
           </div>
+
+          {/* If completed, show celebratory message */}
+          {order.status === 'completed' && (
+            <div className="mb-4 p-3 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center gap-2.5 text-xs text-emerald-900">
+              <div className="h-8 w-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                <Check className="w-4 h-4 stroke-[3]" />
+              </div>
+              <div>
+                <p className="font-bold">Order Fulfilled & Complete!</p>
+                <p className="text-[11px] text-emerald-700">Thank you for dining with White Haven Café Novaliches. Have a wonderful day!</p>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-4">
             {steps.map((step, idx) => {
               const isPast = idx < currentStep;
               const isCurrent = idx === currentStep;
+              const isCompletedAll = order.status === 'completed';
               return (
                 <div key={step.key} className="flex items-start gap-3 relative">
                   {idx < steps.length - 1 && (
                     <div
-                      className={`absolute left-3.5 top-7 bottom-0 w-0.5 -ml-[1px] ${
+                      className={`absolute left-3.5 top-7 bottom-0 w-0.5 -ml-[1px] transition-colors ${
                         idx < currentStep ? 'bg-[#8C5332]' : 'bg-[#D8C7B6]'
                       }`}
                     />
                   )}
                   <div
-                    className={`flex h-7 w-7 items-center justify-center rounded-full z-10 transition-colors ${
-                      isPast
-                        ? 'bg-[#8C5332] text-white'
+                    className={`flex h-7 w-7 items-center justify-center rounded-full z-10 transition-all ${
+                      isPast || (isCurrent && isCompletedAll)
+                        ? 'bg-emerald-700 text-white shadow-xs'
                         : isCurrent
-                        ? 'bg-[#3D2517] text-white ring-4 ring-[#8C5332]/30'
+                        ? 'bg-[#3D2517] text-white ring-4 ring-[#8C5332]/30 scale-105'
                         : 'bg-[#D8C7B6] text-white'
                     }`}
                   >
-                    {isPast ? (
+                    {isPast || (isCurrent && isCompletedAll) ? (
                       <CheckCircle2 className="w-4 h-4" />
                     ) : (
                       <span className="text-xs font-bold">{idx + 1}</span>
@@ -114,7 +167,7 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
                     <h4
                       className={`text-xs font-bold ${
                         isCurrent
-                          ? 'text-[#2C1810] text-sm'
+                          ? 'text-[#2C1810] text-sm font-black'
                           : isPast
                           ? 'text-[#5D4037]'
                           : 'text-[#9E8B7A]'

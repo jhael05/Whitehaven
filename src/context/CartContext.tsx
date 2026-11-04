@@ -1,6 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { MenuItem, Customization, CartItem, OrderType, PaymentMethod, Order } from '../types/cafe';
+import { MenuItem, Customization, CartItem, OrderType, PaymentMethod, Order, OrderStatus } from '../types/cafe';
 import confetti from 'canvas-confetti';
+
+export interface OrderNotification {
+  id: string;
+  orderNumber: string;
+  status: OrderStatus;
+  title: string;
+  message: string;
+  timestamp: string;
+}
 
 interface CartContextType {
   items: CartItem[];
@@ -39,6 +48,9 @@ interface CartContextType {
   reorder: (order: Order) => void;
   activeOrderModal: Order | null;
   setActiveOrderModal: (order: Order | null) => void;
+  orderNotification: OrderNotification | null;
+  dismissOrderNotification: () => void;
+  advanceOrderStatus: (orderId: string) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -72,6 +84,114 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [promoCode, setPromoCode] = useState<string>('');
   const [discountPercent, setDiscountPercent] = useState<number>(0);
   const [activeOrderModal, setActiveOrderModal] = useState<Order | null>(null);
+  const [orderNotification, setOrderNotification] = useState<OrderNotification | null>(null);
+
+  // Play a pleasant ambient cafe chime on status notification
+  const playNotificationChime = (type: 'received' | 'preparing' | 'ready' | 'completed') => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      const baseFreq = type === 'completed' ? 659.25 : type === 'ready' ? 587.33 : 523.25;
+      const targetFreq = type === 'completed' ? 880 : 659.25;
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(baseFreq, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(targetFreq, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.35);
+    } catch {
+      // Audio autoplay policy catch
+    }
+  };
+
+  const notifyOrderUpdate = (
+    order: Order,
+    newStatus: OrderStatus,
+    title: string,
+    message: string
+  ) => {
+    const updatedOrder: Order = {
+      ...order,
+      status: newStatus,
+      statusUpdatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+
+    setOrders(prev => prev.map(o => (o.id === order.id ? updatedOrder : o)));
+    setActiveOrderModal(prev => (prev?.id === order.id ? updatedOrder : prev));
+
+    setOrderNotification({
+      id: `notif_${Date.now()}`,
+      orderNumber: order.orderNumber,
+      status: newStatus,
+      title,
+      message,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    });
+
+    playNotificationChime(newStatus);
+  };
+
+  const dismissOrderNotification = () => {
+    setOrderNotification(null);
+  };
+
+  const advanceOrderStatus = (orderId: string) => {
+    const target = orders.find(o => o.id === orderId);
+    if (!target) return;
+
+    if (target.status === 'received') {
+      notifyOrderUpdate(
+        target,
+        'preparing',
+        '🔥 Brewing & Crafting',
+        `Order ${target.orderNumber} is now brewing at the White Haven espresso bar.`
+      );
+    } else if (target.status === 'preparing') {
+      notifyOrderUpdate(
+        target,
+        'ready',
+        '🎉 Ready for Serving',
+        target.orderType === 'pickup'
+          ? `Order ${target.orderNumber} is packed & ready at the pick-up counter!`
+          : `Order ${target.orderNumber} is freshly brewed & being served to ${target.tableNumber || 'your table'}!`
+      );
+    } else if (target.status === 'ready') {
+      notifyOrderUpdate(
+        target,
+        'completed',
+        '✨ Order Completed',
+        `Order ${target.orderNumber} is completed! Enjoy your handcrafted coffee at White Haven!`
+      );
+      try {
+        confetti({
+          particleCount: 90,
+          spread: 80,
+          origin: { y: 0.5 },
+          colors: ['#00897B', '#8C5332', '#F5ECE2', '#007DFE'],
+        });
+      } catch {
+        // ignore
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (orderNotification) {
+      const timer = setTimeout(() => {
+        setOrderNotification(null);
+      }, 7000);
+      return () => clearTimeout(timer);
+    }
+  }, [orderNotification]);
 
   useEffect(() => {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
@@ -224,26 +344,58 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setActiveOrderModal(newOrder);
 
-    // Simulate baristas updating order progress from received -> preparing -> ready
-    setTimeout(() => {
-      setOrders(prev =>
-        prev.map(o =>
-          o.id === newOrder.id
-            ? { ...o, status: 'preparing', statusUpdatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
-            : o
-        )
-      );
-    }, 6000);
+    // Initial stage 1 notification
+    setOrderNotification({
+      id: `notif_${Date.now()}`,
+      orderNumber: newOrder.orderNumber,
+      status: 'received',
+      title: '☕ Order Received!',
+      message: `Order ${newOrder.orderNumber} has been received and sent to the White Haven kitchen.`,
+      timestamp: newOrder.createdAt,
+    });
+    playNotificationChime('received');
 
+    // Stage 2: Brewing & Crafting (7 seconds)
     setTimeout(() => {
-      setOrders(prev =>
-        prev.map(o =>
-          o.id === newOrder.id
-            ? { ...o, status: 'ready', statusUpdatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
-            : o
-        )
+      notifyOrderUpdate(
+        newOrder,
+        'preparing',
+        '🔥 Brewing & Crafting',
+        `Order ${newOrder.orderNumber} is now brewing at the espresso bar.`
+      );
+    }, 7000);
+
+    // Stage 3: Ready for Pick-up or Serving (18 seconds)
+    setTimeout(() => {
+      notifyOrderUpdate(
+        newOrder,
+        'ready',
+        newOrder.orderType === 'pickup' ? '🎉 Ready for Pick-up!' : '🎉 Serving to Table!',
+        newOrder.orderType === 'pickup'
+          ? `Order ${newOrder.orderNumber} is ready at the counter for collection.`
+          : `Order ${newOrder.orderNumber} is ready and heading to ${newOrder.tableNumber || 'your table'}!`
       );
     }, 18000);
+
+    // Stage 4: Order Completed (30 seconds) - reaches full 4 stages!
+    setTimeout(() => {
+      notifyOrderUpdate(
+        newOrder,
+        'completed',
+        '✨ Order Completed!',
+        `Order ${newOrder.orderNumber} is completed. Thank you for choosing White Haven Café! Enjoy your drinks!`
+      );
+      try {
+        confetti({
+          particleCount: 100,
+          spread: 80,
+          origin: { y: 0.5 },
+          colors: ['#00897B', '#8C5332', '#F5ECE2', '#007DFE', '#FFB300'],
+        });
+      } catch {
+        // ignore
+      }
+    }, 30000);
 
     return newOrder;
   };
@@ -282,6 +434,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         reorder,
         activeOrderModal,
         setActiveOrderModal,
+        orderNotification,
+        dismissOrderNotification,
+        advanceOrderStatus,
       }}
     >
       {children}

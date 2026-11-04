@@ -22,12 +22,21 @@ import { LoyaltyStampBanner } from './components/LoyaltyStampBanner';
 
 import { MenuItem, Order } from './types/cafe';
 import { CAFE_INFO } from './data/menuData';
-import { ShoppingBag, ArrowRight, Lock } from 'lucide-react';
+import { ShoppingBag, ArrowRight, Lock, X, Bell, CheckCircle2, Sparkles, Coffee } from 'lucide-react';
 
 const SOCIALS_STORAGE_KEY = 'white_haven_social_links';
 
 const MainAppContent: React.FC = () => {
-  const { totalCount, total, items, activeOrderModal, setActiveOrderModal } = useCart();
+  const {
+    totalCount,
+    total,
+    items,
+    activeOrderModal,
+    setActiveOrderModal,
+    orders,
+    orderNotification,
+    dismissOrderNotification,
+  } = useCart();
   const { isAuthenticated, user } = useAuth();
 
   // Navigation section
@@ -131,6 +140,72 @@ const MainAppContent: React.FC = () => {
             <span>{toastMessage}</span>
           </div>
         </div>
+      )}
+
+      {/* Real-time Live Order Progress In-App Notification Banner */}
+      {orderNotification && (
+        <aside
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-6 right-4 sm:right-6 z-50 max-w-sm w-[calc(100%-2rem)] bg-[#FAF7F2] border-2 border-[#8C5332] rounded-3xl shadow-2xl p-4 animate-slide-up"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-ping" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[#8C5332]">
+                Order Update • {orderNotification.orderNumber}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={dismissOrderNotification}
+              className="text-[#7C6656] hover:text-[#2C1810] p-1 -mr-1 -mt-1 cursor-pointer transition-colors"
+              title="Dismiss notification"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="mt-1 flex items-start gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#3D2517] text-white shrink-0 mt-0.5">
+              {orderNotification.status === 'completed' ? (
+                <Sparkles className="w-5 h-5 text-amber-300" />
+              ) : orderNotification.status === 'ready' ? (
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              ) : (
+                <Coffee className="w-5 h-5 text-amber-300" />
+              )}
+            </div>
+            <div className="flex-1">
+              <h4 className="font-serif-cafe text-sm font-bold text-[#2C1810]">
+                {orderNotification.title}
+              </h4>
+              <p className="text-xs text-[#5D4037] mt-0.5 leading-snug">
+                {orderNotification.message}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-3 flex items-center justify-between pt-2.5 border-t border-[#DECDBE]">
+            <span className="text-[10px] text-[#7C6656] font-medium">
+              {orderNotification.timestamp}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                const target = orders.find(o => o.orderNumber === orderNotification.orderNumber);
+                if (target) {
+                  setActiveOrderModal(target);
+                }
+                dismissOrderNotification();
+              }}
+              className="inline-flex items-center gap-1 rounded-full bg-[#3D2517] hover:bg-[#2C1810] text-[#FAF7F2] px-3 py-1 text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
+            >
+              <span>View Tracker</span>
+              <ArrowRight className="w-3 h-3 text-amber-300" />
+            </button>
+          </div>
+        </aside>
       )}
 
       {/* Main Navbar */}

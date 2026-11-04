@@ -3,6 +3,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { OrderType, PaymentMethod } from '../types/cafe';
 import { X, Check, CreditCard, Banknote, Smartphone, Store, ShoppingBag, Clock } from 'lucide-react';
+import { GCashLogo, MayaLogo, CardsLogo, CashLogo } from './PaymentLogos';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -294,87 +295,102 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
             </div>
           </div>
 
-          {/* 3. Payment Method: Cash, Card, GCash, Maya */}
+          {/* 3. Payment Method: Cash, Card, GCash, Maya (Aesthetic Logo Buttons) */}
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider text-[#5D4037]">
-              3. Payment Method
-            </label>
-            <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {/* GCash */}
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-[#5D4037]">
+                3. Select Payment Method
+              </label>
+              <span className="text-[11px] text-[#7C6656] italic">Tap logo to select</span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {/* GCash Logo */}
               <button
                 type="button"
                 onClick={() => setPaymentMethod('gcash')}
-                className={`flex flex-col items-center justify-center rounded-2xl p-3 border text-center transition-all ${
+                aria-label="Pay with GCash"
+                className={`relative flex items-center justify-center rounded-2xl p-3 border transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] ${
                   paymentMethod === 'gcash'
-                    ? 'border-[#007DFE] bg-[#EBF4FF] ring-2 ring-[#007DFE]'
+                    ? 'border-[#007DFE] bg-[#EBF4FF] ring-2 ring-[#007DFE] ring-offset-2'
                     : 'border-[#D8C7B6] bg-white hover:bg-[#F9F5F0]'
                 }`}
               >
-                <div className="h-8 w-8 rounded-full bg-[#007DFE] text-white flex items-center justify-center font-bold text-xs">
-                  G
-                </div>
-                <span className="mt-1 text-xs font-bold text-[#007DFE]">GCash</span>
-                <span className="text-[10px] text-gray-500">QR / Send Money</span>
+                <GCashLogo size="md" className="h-8 transition-transform group-hover:scale-105" />
+                {paymentMethod === 'gcash' && (
+                  <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#007DFE] text-white">
+                    <Check className="w-2.5 h-2.5 stroke-[3]" />
+                  </span>
+                )}
               </button>
 
-              {/* Cash */}
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('cash')}
-                className={`flex flex-col items-center justify-center rounded-2xl p-3 border text-center transition-all ${
-                  paymentMethod === 'cash'
-                    ? 'border-[#1E7E34] bg-[#EAF7ED] ring-2 ring-[#1E7E34]'
-                    : 'border-[#D8C7B6] bg-white hover:bg-[#F9F5F0]'
-                }`}
-              >
-                <div className="h-8 w-8 rounded-full bg-[#1E7E34] text-white flex items-center justify-center">
-                  <Banknote className="w-4 h-4" />
-                </div>
-                <span className="mt-1 text-xs font-bold text-[#1E7E34]">Cash</span>
-                <span className="text-[10px] text-gray-500">Pay at Counter</span>
-              </button>
-
-              {/* Card */}
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('card')}
-                className={`flex flex-col items-center justify-center rounded-2xl p-3 border text-center transition-all ${
-                  paymentMethod === 'card'
-                    ? 'border-[#8C5332] bg-[#F5ECE3] ring-2 ring-[#8C5332]'
-                    : 'border-[#D8C7B6] bg-white hover:bg-[#F9F5F0]'
-                }`}
-              >
-                <div className="h-8 w-8 rounded-full bg-[#3D2517] text-white flex items-center justify-center">
-                  <CreditCard className="w-4 h-4" />
-                </div>
-                <span className="mt-1 text-xs font-bold text-[#3D2517]">Credit/Debit</span>
-                <span className="text-[10px] text-gray-500">Visa / Mastercard</span>
-              </button>
-
-              {/* Maya */}
+              {/* Maya Logo */}
               <button
                 type="button"
                 onClick={() => setPaymentMethod('maya')}
-                className={`flex flex-col items-center justify-center rounded-2xl p-3 border text-center transition-all ${
+                aria-label="Pay with Maya"
+                className={`relative flex items-center justify-center rounded-2xl p-3 border transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] ${
                   paymentMethod === 'maya'
-                    ? 'border-[#00897B] bg-[#E0F2F1] ring-2 ring-[#00897B]'
+                    ? 'border-[#00D084] bg-[#0A0A0A]/5 ring-2 ring-[#00D084] ring-offset-2'
                     : 'border-[#D8C7B6] bg-white hover:bg-[#F9F5F0]'
                 }`}
               >
-                <div className="h-8 w-8 rounded-full bg-[#00897B] text-white flex items-center justify-center font-bold text-xs">
-                  M
-                </div>
-                <span className="mt-1 text-xs font-bold text-[#00897B]">Maya</span>
-                <span className="text-[10px] text-gray-500">QR Ph Scan</span>
+                <MayaLogo size="md" className="h-8 transition-transform group-hover:scale-105" />
+                {paymentMethod === 'maya' && (
+                  <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#00D084] text-black">
+                    <Check className="w-2.5 h-2.5 stroke-[3]" />
+                  </span>
+                )}
+              </button>
+
+              {/* Cards (Visa & Mastercard) Logo */}
+              <button
+                type="button"
+                onClick={() => setPaymentMethod('card')}
+                aria-label="Pay with Visa or Mastercard"
+                className={`relative flex items-center justify-center rounded-2xl p-3 border transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] ${
+                  paymentMethod === 'card'
+                    ? 'border-[#3D2517] bg-[#F5ECE3] ring-2 ring-[#3D2517] ring-offset-2'
+                    : 'border-[#D8C7B6] bg-white hover:bg-[#F9F5F0]'
+                }`}
+              >
+                <CardsLogo size="md" className="h-8 transition-transform group-hover:scale-105" />
+                {paymentMethod === 'card' && (
+                  <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#3D2517] text-white">
+                    <Check className="w-2.5 h-2.5 stroke-[3]" />
+                  </span>
+                )}
+              </button>
+
+              {/* Cash Logo */}
+              <button
+                type="button"
+                onClick={() => setPaymentMethod('cash')}
+                aria-label="Pay with Cash at counter"
+                className={`relative flex items-center justify-center rounded-2xl p-3 border transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] ${
+                  paymentMethod === 'cash'
+                    ? 'border-[#1B4D3E] bg-[#EAF7ED] ring-2 ring-[#1B4D3E] ring-offset-2'
+                    : 'border-[#D8C7B6] bg-white hover:bg-[#F9F5F0]'
+                }`}
+              >
+                <CashLogo size="md" className="h-8 transition-transform group-hover:scale-105" />
+                {paymentMethod === 'cash' && (
+                  <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#1B4D3E] text-white">
+                    <Check className="w-2.5 h-2.5 stroke-[3]" />
+                  </span>
+                )}
               </button>
             </div>
 
             {/* Method Details Form */}
             {paymentMethod === 'gcash' && (
               <div className="mt-3 rounded-2xl bg-[#EBF4FF] p-4 border border-[#B9D8FF] text-xs">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-bold text-[#007DFE]">Official GCash Payment</span>
-                  <span className="rounded bg-[#007DFE] text-white px-2 py-0.5 text-[10px] font-semibold">
+                <div className="flex items-center justify-between mb-2.5">
+                  <div className="flex items-center gap-2">
+                    <GCashLogo size="sm" className="h-6" />
+                    <span className="font-bold text-[#007DFE] text-xs">Official Merchant Payment</span>
+                  </div>
+                  <span className="rounded-full bg-[#007DFE] text-white px-2.5 py-0.5 text-[10px] font-semibold">
                     Instant Verified
                   </span>
                 </div>
@@ -456,7 +472,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
 
             {paymentMethod === 'card' && (
               <div className="mt-3 rounded-2xl bg-[#F5ECE3] p-4 border border-[#DECDBE] text-xs space-y-3">
-                <span className="font-bold text-[#3D2517]">Debit / Credit Card Payment</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CardsLogo size="sm" className="h-6" />
+                    <span className="font-bold text-[#3D2517] text-xs">Credit & Debit Card</span>
+                  </div>
+                  <span className="text-[10px] text-[#7C6656] font-medium">Encrypted & Secure</span>
+                </div>
                 <div>
                   <label className="block text-[11px] font-medium text-gray-700 mb-0.5">
                     Card Number
@@ -500,7 +522,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
 
             {paymentMethod === 'maya' && (
               <div className="mt-3 rounded-2xl bg-[#E0F2F1] p-4 border border-[#80CBC4] text-xs">
-                <span className="font-bold text-[#00897B]">Maya / QR Ph Standard</span>
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <MayaLogo size="sm" className="h-6" />
+                    <span className="font-bold text-[#00897B] text-xs">Maya / QR Ph Standard</span>
+                  </div>
+                  <span className="rounded-full bg-[#00897B] text-white px-2 py-0.5 text-[10px] font-semibold">
+                    QR Ph
+                  </span>
+                </div>
                 <p className="text-[11px] text-[#004D40] mt-0.5">
                   Scan using Maya or any QR Ph compliant banking app (BDO, BPI, UnionBank, RCBC).
                 </p>

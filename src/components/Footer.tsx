@@ -2,6 +2,7 @@ import React from 'react';
 import { CafeLogo } from './CafeLogo';
 import { CAFE_INFO } from '../data/menuData';
 import { MapPin, Clock, Phone, Heart, Share2 } from 'lucide-react';
+import { GCashLogo, MayaLogo, CardsLogo, CashLogo } from './PaymentLogos';
 
 interface FooterProps {
   onNavigate: (sectionId: string) => void;
@@ -118,11 +119,19 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenSocialModal })
             <h4 className="font-serif-cafe text-sm font-bold tracking-wider uppercase text-amber-200">
               Accepted Payments
             </h4>
-            <div className="flex flex-wrap gap-2 text-[11px] text-[#2C1810]">
-              <span className="rounded-lg bg-[#FAF7F2] px-2.5 py-1 font-bold">💵 Cash</span>
-              <span className="rounded-lg bg-[#007DFE] text-white px-2.5 py-1 font-bold">GCash</span>
-              <span className="rounded-lg bg-[#00897B] text-white px-2.5 py-1 font-bold">Maya</span>
-              <span className="rounded-lg bg-[#FAF7F2] px-2.5 py-1 font-bold">💳 Card</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="p-1 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 transition-all hover:scale-105" title="GCash Accepted">
+                <GCashLogo size="sm" className="h-6" />
+              </div>
+              <div className="p-1 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 transition-all hover:scale-105" title="Maya Accepted">
+                <MayaLogo size="sm" className="h-6" />
+              </div>
+              <div className="p-1 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 transition-all hover:scale-105" title="Visa and Mastercard Accepted">
+                <CardsLogo size="sm" className="h-6" />
+              </div>
+              <div className="p-1 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 transition-all hover:scale-105" title="Cash Accepted at Counter">
+                <CashLogo size="sm" className="h-6" />
+              </div>
             </div>
 
             <div className="pt-2">

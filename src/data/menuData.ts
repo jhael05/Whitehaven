@@ -148,9 +148,9 @@ export const CAFE_INFO = {
   hours: '8:00 AM - 12:00 MN Daily',
   phone: '+63 917 842 8360',
   socials: {
-    facebook: 'https://facebook.com/whitehavencafe',
-    instagram: 'https://instagram.com/white_havencafe',
-    tiktok: 'https://tiktok.com/@white_havencafe',
+    facebook: 'https://www.facebook.com/p/White-Haven-Cafe-61584749272787/',
+    instagram: 'https://www.instagram.com/white_havencafe/',
+    tiktok: 'https://www.tiktok.com/@white.haven.cafe',
   },
   amenities: [
     'Fast Free Fiber Wi-Fi',

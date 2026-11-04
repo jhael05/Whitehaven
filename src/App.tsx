@@ -50,19 +50,26 @@ const MainAppContent: React.FC = () => {
     }, 3200);
   };
 
-  // Social links state with localStorage persistence
+  // Social links state with localStorage persistence & automatic migration to canonical URLs
   const [socials, setSocials] = useState(() => {
     try {
       const saved = localStorage.getItem(SOCIALS_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // If stored links contain old non-working placeholders, upgrade to real official ones
+        if (
+          parsed.facebook?.includes('facebook.com/whitehavencafe') ||
+          parsed.tiktok?.includes('@white_havencafe')
+        ) {
+          localStorage.setItem(SOCIALS_STORAGE_KEY, JSON.stringify(CAFE_INFO.socials));
+          return CAFE_INFO.socials;
+        }
+        return parsed;
+      }
     } catch {
       // fallback
     }
-    return {
-      facebook: CAFE_INFO.socials.facebook,
-      instagram: CAFE_INFO.socials.instagram,
-      tiktok: CAFE_INFO.socials.tiktok,
-    };
+    return CAFE_INFO.socials;
   });
 
   const handleUpdateSocials = (updated: { facebook: string; instagram: string; tiktok: string }) => {
@@ -127,6 +134,7 @@ const MainAppContent: React.FC = () => {
             handleNavigate('menu');
           }}
           onOpenSocialModal={() => setIsSocialModalOpen(true)}
+          socials={socials}
         />
 
         {/* Loyalty Stamp Club Banner */}
@@ -141,13 +149,17 @@ const MainAppContent: React.FC = () => {
         <MenuSection onSelectItem={(item) => setSelectedMenuItem(item)} />
 
         {/* About Us & Novaliches Location Section matching screenshot */}
-        <AboutUsSection onOpenSocialModal={() => setIsSocialModalOpen(true)} />
+        <AboutUsSection
+          onOpenSocialModal={() => setIsSocialModalOpen(true)}
+          socials={socials}
+        />
       </main>
 
       {/* Footer */}
       <Footer
         onNavigate={handleNavigate}
         onOpenSocialModal={() => setIsSocialModalOpen(true)}
+        socials={socials}
       />
 
       {/* Floating Bottom Cart Bar (appears when items are in cart and cart drawer is closed) */}

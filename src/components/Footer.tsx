@@ -7,9 +7,15 @@ import { GCashLogo, MayaLogo, CardsLogo, CashLogo } from './PaymentLogos';
 interface FooterProps {
   onNavigate: (sectionId: string) => void;
   onOpenSocialModal: () => void;
+  socials?: {
+    facebook: string;
+    instagram: string;
+    tiktok: string;
+  };
 }
 
-export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenSocialModal }) => {
+export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenSocialModal, socials }) => {
+  const currentSocials = socials || CAFE_INFO.socials;
   return (
     <footer className="bg-[#2C1810] text-[#FAF7F2] pt-14 pb-8 border-t border-[#4A2E1B]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -140,10 +146,14 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenSocialModal })
               </span>
               <div className="flex items-center gap-2.5">
                 <a
-                  href={CAFE_INFO.socials.facebook}
+                  href={currentSocials.facebook}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 hover:bg-[#1877F2] text-white transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(currentSocials.facebook, '_blank', 'noopener,noreferrer');
+                  }}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 hover:bg-[#1877F2] text-white transition-colors cursor-pointer"
                   title="Facebook"
                 >
                   <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
@@ -151,10 +161,14 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenSocialModal })
                   </svg>
                 </a>
                 <a
-                  href={CAFE_INFO.socials.instagram}
+                  href={currentSocials.instagram}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 hover:bg-[#E1306C] text-white transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(currentSocials.instagram, '_blank', 'noopener,noreferrer');
+                  }}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 hover:bg-[#E1306C] text-white transition-colors cursor-pointer"
                   title="Instagram"
                 >
                   <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
@@ -162,10 +176,14 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenSocialModal })
                   </svg>
                 </a>
                 <a
-                  href={CAFE_INFO.socials.tiktok}
+                  href={currentSocials.tiktok}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 hover:bg-black text-white transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(currentSocials.tiktok, '_blank', 'noopener,noreferrer');
+                  }}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 hover:bg-black text-white transition-colors cursor-pointer"
                   title="TikTok"
                 >
                   <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">

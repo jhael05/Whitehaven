@@ -23,6 +23,13 @@ export const SocialLinksModal: React.FC<SocialLinksModalProps> = ({
   const [tt, setTt] = useState(socials.tiktok);
   const [savedToast, setSavedToast] = useState(false);
 
+  // Sync state if socials prop updates
+  React.useEffect(() => {
+    setFb(socials.facebook);
+    setIg(socials.instagram);
+    setTt(socials.tiktok);
+  }, [socials.facebook, socials.instagram, socials.tiktok]);
+
   if (!isOpen) return null;
 
   const handleSave = (e: React.FormEvent) => {
@@ -44,7 +51,7 @@ export const SocialLinksModal: React.FC<SocialLinksModalProps> = ({
       <div className="relative w-full max-w-md my-8 rounded-3xl bg-[#FAF7F2] shadow-2xl border border-[#D8C7B6] overflow-hidden p-6 sm:p-8">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 rounded-full p-2 text-[#5D4037] hover:bg-[#DECDBE] transition-colors"
+          className="absolute top-4 right-4 rounded-full p-2 text-[#5D4037] hover:bg-[#DECDBE] transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
@@ -80,13 +87,17 @@ export const SocialLinksModal: React.FC<SocialLinksModalProps> = ({
             href={fb}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-between rounded-xl bg-[#1877F2]/10 hover:bg-[#1877F2]/20 border border-[#1877F2]/30 p-3 text-xs font-bold text-[#1877F2] transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(fb, '_blank', 'noopener,noreferrer');
+            }}
+            className="flex items-center justify-between rounded-xl bg-[#1877F2]/10 hover:bg-[#1877F2]/20 border border-[#1877F2]/30 p-3 text-xs font-bold text-[#1877F2] transition-colors cursor-pointer"
           >
             <div className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#1877F2] text-white">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#1877F2] text-white font-bold">
                 f
               </span>
-              <span>Facebook (@white_havencafe)</span>
+              <span>Facebook (White Haven Cafe)</span>
             </div>
             <ExternalLink className="w-4 h-4" />
           </a>
@@ -95,10 +106,14 @@ export const SocialLinksModal: React.FC<SocialLinksModalProps> = ({
             href={ig}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-between rounded-xl bg-[#E1306C]/10 hover:bg-[#E1306C]/20 border border-[#E1306C]/30 p-3 text-xs font-bold text-[#E1306C] transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(ig, '_blank', 'noopener,noreferrer');
+            }}
+            className="flex items-center justify-between rounded-xl bg-[#E1306C]/10 hover:bg-[#E1306C]/20 border border-[#E1306C]/30 p-3 text-xs font-bold text-[#E1306C] transition-colors cursor-pointer"
           >
             <div className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr from-[#FD1D1D] to-[#833AB4] text-white text-[10px]">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr from-[#FD1D1D] to-[#833AB4] text-white text-[10px] font-bold">
                 IG
               </span>
               <span>Instagram (@white_havencafe)</span>
@@ -110,13 +125,17 @@ export const SocialLinksModal: React.FC<SocialLinksModalProps> = ({
             href={tt}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-between rounded-xl bg-black/5 hover:bg-black/10 border border-black/20 p-3 text-xs font-bold text-black transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(tt, '_blank', 'noopener,noreferrer');
+            }}
+            className="flex items-center justify-between rounded-xl bg-black/5 hover:bg-black/10 border border-black/20 p-3 text-xs font-bold text-black transition-colors cursor-pointer"
           >
             <div className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black text-white text-[10px]">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black text-white text-[10px] font-bold">
                 TT
               </span>
-              <span>TikTok (@white_havencafe)</span>
+              <span>TikTok (@white.haven.cafe)</span>
             </div>
             <ExternalLink className="w-4 h-4" />
           </a>

@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Order } from '../types/cafe';
-import { X, CheckCircle2, Clock, Coffee, Printer, Store, ShoppingBag } from 'lucide-react';
+import { X, CheckCircle2, Clock, Coffee, Printer, Store, ShoppingBag, HardDrive, Check, ExternalLink } from 'lucide-react';
+import { uploadFileToDrive, getDriveAccessToken, signInWithGoogleDrive } from '../services/googleDriveService';
 
 interface OrderTrackerModalProps {
   order: Order | null;
   isOpen: boolean;
   onClose: () => void;
   onOrderAgain: () => void;
+  onOpenDrive?: () => void;
 }
 
 export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
@@ -36,8 +38,70 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
 
   const currentStep = getStepIndex(order.status);
 
+  const [isSavingDrive, setIsSavingDrive] = useState(false);
+  const [driveSavedLink, setDriveSavedLink] = useState<string | null>(null);
+  const [driveError, setDriveError] = useState<string | null>(null);
+
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleSaveToDrive = async () => {
+    setIsSavingDrive(true);
+    setDriveError(null);
+    try {
+      let token = getDriveAccessToken();
+      if (!token) {
+        const res = await signInWithGoogleDrive();
+        if (!res?.accessToken) {
+          throw new Error('Please sign in with Google to save to Drive.');
+        }
+      }
+
+      const receiptText = [
+        '====================================================',
+        'WHITE HAVEN CAFÉ - OFFICIAL ORDER RECEIPT',
+        `Order Number: ${order.orderNumber}`,
+        `Date: ${new Date(order.createdAt).toLocaleString()}`,
+        `Customer: ${order.customerName}`,
+        `Contact: ${order.contactNumber}`,
+        `Dining Type: ${order.orderType === 'pickup' ? `Pick-up (${order.pickupTime || 'ASAP'})` : `In-Store (${order.tableNumber})`}`,
+        `Payment Method: ${order.paymentMethod.toUpperCase()}`,
+        `Status: ${order.status.toUpperCase()}`,
+        '----------------------------------------------------',
+        'ORDER ITEMS:',
+        ...order.items.map(
+          (item) =>
+            `${item.quantity}x ${item.menuItem.name} [${item.customization.size}, ${item.customization.temperature}, ${item.customization.sweetness} Sweetness${
+              item.customization.milkType !== 'Whole Milk' ? `, ${item.customization.milkType}` : ''
+            }${item.customization.addOns.length ? `, Add-ons: ${item.customization.addOns.join(', ')}` : ''}] = ₱${item.totalPrice}`
+        ),
+        '----------------------------------------------------',
+        `Subtotal: ₱${order.subtotal}`,
+        order.discount > 0 ? `Discount: -₱${order.discount}` : '',
+        `TOTAL PAID: ₱${order.total}`,
+        '----------------------------------------------------',
+        'WHITE HAVEN CAFÉ',
+        '22 Midway St., Foresthill Subd., Novaliches, Quezon City',
+        'Hours: 8:00 AM - 12:00 MN | @white_havencafe',
+        'Thank you for brewing memories with White Haven Café!',
+        '====================================================',
+      ]
+        .filter(Boolean)
+        .join('\n');
+
+      const file = await uploadFileToDrive(
+        `White_Haven_Receipt_${order.orderNumber}.txt`,
+        receiptText,
+        'text/plain'
+      );
+
+      setDriveSavedLink(file.webViewLink || 'https://drive.google.com');
+    } catch (err: any) {
+      setDriveError(err.message || 'Failed to save receipt to Google Drive.');
+    } finally {
+      setIsSavingDrive(false);
+    }
   };
 
   return (
@@ -210,21 +274,59 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
             </div>
           </div>
 
+          {/* Google Drive Receipt Status */}
+          {driveSavedLink && (
+            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-xs text-emerald-900 flex items-center justify-between animate-fade-in">
+              <span className="flex items-center gap-1.5 font-semibold">
+                <Check className="w-4 h-4 text-emerald-600" />
+                Receipt saved to Google Drive!
+              </span>
+              <a
+                href={driveSavedLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-[11px] font-bold text-emerald-800 underline hover:text-emerald-950"
+              >
+                <span>View File</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+          )}
+
+          {driveError && (
+            <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-800 animate-fade-in">
+              {driveError}
+            </div>
+          )}
+
           <div className="text-center text-[11px] text-[#7C6656]">
             📍 White Haven Café • 22 Midway St., Foresthill Subd., Novaliches, Quezon City
           </div>
         </div>
 
         {/* Modal Bottom Buttons */}
-        <div className="p-4 bg-[#EFE7DD] border-t border-[#DECDBE] flex items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={handlePrint}
-            className="flex items-center gap-1.5 rounded-full border border-[#D8C7B6] bg-white px-4 py-2.5 text-xs font-semibold text-[#5D4037] hover:bg-[#FAF7F2] transition-colors"
-          >
-            <Printer className="w-4 h-4" />
-            <span>Print Receipt</span>
-          </button>
+        <div className="p-4 bg-[#EFE7DD] border-t border-[#DECDBE] flex flex-wrap items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="flex items-center gap-1.5 rounded-full border border-[#D8C7B6] bg-white px-3.5 py-2 text-xs font-semibold text-[#5D4037] hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>Print</span>
+            </button>
+
+            <button
+              type="button"
+              disabled={isSavingDrive}
+              onClick={handleSaveToDrive}
+              className="flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3.5 py-2 text-xs font-semibold text-blue-800 hover:bg-blue-100 transition-colors cursor-pointer disabled:opacity-50"
+              title="Save receipt file directly to your Google Drive"
+            >
+              <HardDrive className={`w-3.5 h-3.5 ${isSavingDrive ? 'animate-spin' : 'text-blue-600'}`} />
+              <span>{isSavingDrive ? 'Saving...' : 'Save to Drive'}</span>
+            </button>
+          </div>
 
           <button
             type="button"
@@ -232,10 +334,10 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
               onClose();
               onOrderAgain();
             }}
-            className="flex-1 rounded-full bg-[#3D2517] hover:bg-[#2C1810] py-2.5 px-5 text-xs font-bold text-[#FAF7F2] shadow transition-all flex items-center justify-center gap-1.5"
+            className="flex-1 min-w-[140px] rounded-full bg-[#3D2517] hover:bg-[#2C1810] py-2 px-4 text-xs font-bold text-[#FAF7F2] shadow transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <Coffee className="w-3.5 h-3.5 text-amber-300" />
-            <span>Order Another Item</span>
+            <span>Order Another</span>
           </button>
         </div>
       </div>

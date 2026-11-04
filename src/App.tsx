@@ -19,6 +19,7 @@ import { OrderTrackerModal } from './components/OrderTrackerModal';
 import { OrdersHistoryModal } from './components/OrdersHistoryModal';
 import { SocialLinksModal } from './components/SocialLinksModal';
 import { LoyaltyStampBanner } from './components/LoyaltyStampBanner';
+import { GoogleDriveModal } from './components/GoogleDriveModal';
 import { MenuItem, Order } from './types/cafe';
 import { CAFE_INFO } from './data/menuData';
 import { ShoppingBag, ArrowRight } from 'lucide-react';
@@ -38,6 +39,7 @@ const MainAppContent: React.FC = () => {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isOrdersHistoryOpen, setIsOrdersHistoryOpen] = useState(false);
   const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
+  const [isDriveOpen, setIsDriveOpen] = useState(false);
   const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -108,6 +110,7 @@ const MainAppContent: React.FC = () => {
         }}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenOrders={() => setIsOrdersHistoryOpen(true)}
+        onOpenDrive={() => setIsDriveOpen(true)}
         activeSection={activeSection}
         onNavigate={handleNavigate}
         onShowToast={showToast}
@@ -205,6 +208,7 @@ const MainAppContent: React.FC = () => {
         order={activeOrderModal}
         isOpen={!!activeOrderModal}
         onClose={() => setActiveOrderModal(null)}
+        onOpenDrive={() => setIsDriveOpen(true)}
         onOrderAgain={() => {
           setActiveOrderModal(null);
           handleNavigate('menu');
@@ -227,6 +231,13 @@ const MainAppContent: React.FC = () => {
         onClose={() => setIsSocialModalOpen(false)}
         socials={socials}
         onUpdateSocials={handleUpdateSocials}
+      />
+
+      {/* Google Drive Workspace Modal */}
+      <GoogleDriveModal
+        isOpen={isDriveOpen}
+        onClose={() => setIsDriveOpen(false)}
+        onShowToast={showToast}
       />
     </div>
   );

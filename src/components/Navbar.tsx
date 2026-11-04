@@ -2,12 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { CafeLogo } from './CafeLogo';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { ShoppingBag, Clock, User as UserIcon, LogOut, Award, ChevronDown } from 'lucide-react';
+import { ShoppingBag, Clock, User as UserIcon, LogOut, Award, ChevronDown, HardDrive } from 'lucide-react';
 
 interface NavbarProps {
   onOpenAuth: () => void;
   onOpenCart: () => void;
   onOpenOrders: () => void;
+  onOpenDrive?: () => void;
   activeSection: string;
   onNavigate: (sectionId: string) => void;
   onShowToast?: (msg: string) => void;
@@ -17,6 +18,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenAuth,
   onOpenCart,
   onOpenOrders,
+  onOpenDrive,
   activeSection,
   onNavigate,
   onShowToast,
@@ -124,6 +126,16 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             )}
 
+            {/* Google Drive Workspace Hub Button */}
+            <button
+              onClick={onOpenDrive}
+              className="flex items-center gap-1.5 rounded-full border border-[#D8C7B6] bg-[#FAF7F2] hover:bg-white px-3 py-2 text-xs font-semibold text-[#5D4037] transition-colors cursor-pointer shadow-sm"
+              title="Open Google Drive (View files, export receipts & menu)"
+            >
+              <HardDrive className="w-4 h-4 text-blue-600" />
+              <span className="hidden md:inline">Drive</span>
+            </button>
+
             {/* Cart Button with Count Badge */}
             <button
               onClick={onOpenCart}
@@ -183,6 +195,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                       className="w-full text-left px-3 py-2 text-xs font-semibold text-[#4A2E1B] hover:bg-[#F0E6DB] rounded-lg mt-1 cursor-pointer"
                     >
                       My Orders & Receipts
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        if (onOpenDrive) onOpenDrive();
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs font-semibold text-blue-900 hover:bg-blue-50 rounded-lg flex items-center gap-1.5 cursor-pointer mt-0.5"
+                    >
+                      <HardDrive className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Google Drive Workspace</span>
                     </button>
 
                     <button

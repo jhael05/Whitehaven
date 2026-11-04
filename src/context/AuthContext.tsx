@@ -22,6 +22,7 @@ interface AuthContextType {
   requestPasswordResetOtp: (emailOrContact: string) => { success: boolean; otp?: string; error?: string };
   resetPasswordWithOtp: (emailOrContact: string, enteredOtp: string, expectedOtp: string, newPassword: string) => AuthResponse;
   addLoyaltyStamp: (count?: number) => void;
+  setStampsCount: (count: number) => void;
   claimLoyaltyReward: () => boolean;
 }
 
@@ -329,6 +330,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   };
 
+  const setStampsCount = (count: number) => {
+    if (!user) return;
+    const clamped = Math.max(0, Math.min(8, count));
+    setUser(prev => (prev ? { ...prev, stampsCount: clamped } : null));
+    setRegisteredAccounts(prev =>
+      prev.map(acc => (acc.id === user.id ? { ...acc, stampsCount: clamped } : acc))
+    );
+  };
+
   const claimLoyaltyReward = () => {
     if (!user || user.stampsCount < 8) return false;
     setUser(prev => (prev ? { ...prev, stampsCount: 0 } : null));
@@ -351,6 +361,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         requestPasswordResetOtp,
         resetPasswordWithOtp,
         addLoyaltyStamp,
+        setStampsCount,
         claimLoyaltyReward,
       }}
     >

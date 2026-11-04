@@ -1,7 +1,21 @@
 import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { X, Trash2, Plus, Minus, Tag, ArrowRight, ShoppingBag, Lock } from 'lucide-react';
+import { AVAILABLE_VOUCHERS } from '../types/cafe';
+import {
+  X,
+  Trash2,
+  Plus,
+  Minus,
+  Tag,
+  ArrowRight,
+  ShoppingBag,
+  Lock,
+  Gift,
+  Sparkles,
+  CheckCircle2,
+  Check,
+} from 'lucide-react';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -14,7 +28,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onClose,
   onProceedToCheckout,
 }) => {
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated, setStampsCount } = useAuth();
   const {
     items,
     updateQuantity,
@@ -28,18 +42,38 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     removePromoCode,
     orderType,
     setOrderType,
+    isFreeDrinkClaimed,
+    toggleFreeDrinkClaim,
+    freeDrinkValue,
+    loyaltyDiscount,
   } = useCart();
 
   const [inputCode, setInputCode] = useState('');
   const [promoMessage, setPromoMessage] = useState<{ success: boolean; text: string } | null>(null);
+  const [stampNotice, setStampNotice] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const handleApplyPromo = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputCode.trim()) return;
-    const res = applyPromoCode(inputCode);
+  const handleApplyPromo = (codeToApply?: string) => {
+    const target = (codeToApply || inputCode).trim();
+    if (!target) return;
+    const res = applyPromoCode(target);
     setPromoMessage({ success: res.success, text: res.message });
+    if (res.success) {
+      setInputCode(target.toUpperCase());
+    }
+  };
+
+  const handleClaimReward = () => {
+    const res = toggleFreeDrinkClaim(user?.stampsCount || 0);
+    setStampNotice(res.message);
+    setTimeout(() => setStampNotice(null), 4000);
+  };
+
+  const handleFill8Stamps = () => {
+    setStampsCount(8);
+    setStampNotice('✨ 8/8 Stamps loaded! Tap "Claim 1 Free Drink" below!');
+    setTimeout(() => setStampNotice(null), 4000);
   };
 
   return (
@@ -212,9 +246,15 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           {/* Promo Code & Bottom Checkout Action */}
           {items.length > 0 && (
             <div className="border-t border-[#DECDBE] bg-[#EFE7DD] p-5 space-y-4">
-              {/* Promo Code Input */}
+              {/* Promo Code Input & Vouchers */}
               <div>
-                <form onSubmit={handleApplyPromo} className="flex gap-2">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleApplyPromo();
+                  }}
+                  className="flex gap-2"
+                >
                   <div className="relative flex-1">
                     <Tag className="absolute left-3 top-2.5 w-4 h-4 text-[#8C5332]" />
                     <input
@@ -227,7 +267,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   </div>
                   <button
                     type="submit"
-                    className="rounded-xl bg-[#5D4037] px-4 py-2 text-xs font-semibold text-white hover:bg-[#3D2517] transition-colors"
+                    className="rounded-xl bg-[#5D4037] px-4 py-2 text-xs font-semibold text-white hover:bg-[#3D2517] transition-colors cursor-pointer"
                   >
                     Apply
                   </button>
@@ -248,12 +288,100 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     <span>Applied code: <strong>{promoCode}</strong></span>
                     <button
                       type="button"
-                      onClick={removePromoCode}
-                      className="text-emerald-900 font-bold hover:underline"
+                      onClick={() => {
+                        removePromoCode();
+                        setInputCode('');
+                      }}
+                      className="text-emerald-900 font-bold hover:underline cursor-pointer"
                     >
                       Remove
                     </button>
                   </div>
+                )}
+
+                {/* Available Voucher Chips */}
+                <div className="mt-2">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-[#7C6656] mb-1">
+                    Available Vouchers (Tap to apply):
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {AVAILABLE_VOUCHERS.map(v => (
+                      <button
+                        key={v.code}
+                        type="button"
+                        onClick={() => handleApplyPromo(v.code)}
+                        className={`text-[10px] px-2 py-1 rounded-lg border font-mono transition-all cursor-pointer ${
+                          promoCode === v.code
+                            ? 'bg-emerald-100 border-emerald-400 text-emerald-900 font-bold'
+                            : 'bg-white border-[#D8C7B6] text-[#8C5332] hover:bg-[#FAF7F2]'
+                        }`}
+                      >
+                        {v.code} ({v.discountDisplay})
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Loyalty Stamp Reward in Order Review */}
+              <div className="rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 p-3 border border-amber-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#3D2517]">
+                    <Gift className="w-3.5 h-3.5 text-[#8C5332]" />
+                    <span>Loyalty Stamps ({user?.stampsCount || 0}/8)</span>
+                  </div>
+                  {(user?.stampsCount || 0) < 8 && (
+                    <button
+                      type="button"
+                      onClick={handleFill8Stamps}
+                      className="text-[10px] font-bold text-[#8C5332] underline hover:text-[#5D4037] cursor-pointer"
+                    >
+                      ⚡ Test with 8 Stamps
+                    </button>
+                  )}
+                </div>
+
+                {(user?.stampsCount || 0) >= 8 ? (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-[11px] text-[#7C6656]">
+                      <span className="font-bold text-amber-900 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-amber-600" />
+                        8/8 Stamps Reached!
+                      </span>
+                      <span className="text-emerald-700 font-bold">1 Free Drink (₱{freeDrinkValue})</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleClaimReward}
+                      className={`w-full py-2 px-3 rounded-lg text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        isFreeDrinkClaimed
+                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                          : 'bg-[#8C5332] hover:bg-[#6F3E22] text-amber-100 animate-pulse'
+                      }`}
+                    >
+                      {isFreeDrinkClaimed ? (
+                        <>
+                          <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                          <span>✓ Free Drink Claimed (-₱{freeDrinkValue}) • Tap to Remove</span>
+                        </>
+                      ) : (
+                        <>
+                          <Gift className="w-3.5 h-3.5 text-amber-300" />
+                          <span>🎁 Claim 1 Free Drink (8 Stamps)</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-[#7C6656]">
+                    Collect {8 - (user?.stampsCount || 0)} more stamp{8 - (user?.stampsCount || 0) > 1 ? 's' : ''} to claim 1 Free Drink!
+                  </p>
+                )}
+
+                {stampNotice && (
+                  <p className="text-[10px] text-[#8C5332] font-semibold bg-white/70 p-1 rounded border border-amber-200">
+                    {stampNotice}
+                  </p>
                 )}
               </div>
 
@@ -265,8 +393,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-emerald-700 font-semibold">
-                    <span>Discount</span>
+                    <span>Voucher ({promoCode})</span>
                     <span>-₱{discount}</span>
+                  </div>
+                )}
+                {loyaltyDiscount > 0 && (
+                  <div className="flex justify-between text-[#8C5332] font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                    <span>🎁 8 Stamps Free Drink</span>
+                    <span>-₱{loyaltyDiscount}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-base font-bold text-[#2C1810] pt-2 border-t border-[#DECDBE]">

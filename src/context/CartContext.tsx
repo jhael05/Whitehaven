@@ -32,11 +32,18 @@ interface CartContextType {
   promoCode: string;
   applyPromoCode: (code: string) => { success: boolean; message: string };
   removePromoCode: () => void;
+  isFreeDrinkClaimed: boolean;
+  setIsFreeDrinkClaimed: (claimed: boolean) => void;
+  toggleFreeDrinkClaim: (stampsCount: number) => { success: boolean; message: string };
+  freeDrinkValue: number;
+  loyaltyDiscount: number;
   orders: Order[];
   createOrder: (details: {
     customerName: string;
     contactNumber: string;
     paymentMethod: PaymentMethod;
+    loyaltyDiscount?: number;
+    claimedFreeDrink?: boolean;
     paymentDetails?: {
       cashTendered?: number;
       change?: number;
@@ -269,17 +276,46 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   };
 
+  const [isFreeDrinkClaimed, setIsFreeDrinkClaimed] = useState<boolean>(false);
+
   const clearCart = () => {
     setItems([]);
     setPromoCode('');
     setDiscountPercent(0);
     setSpecialInstructions('');
+    setIsFreeDrinkClaimed(false);
   };
 
   const subtotal = items.reduce((acc, curr) => acc + curr.totalPrice, 0);
   const discount = Math.round((subtotal * discountPercent) / 100);
-  const total = Math.max(0, subtotal - discount);
+  const freeDrinkValue = items.length > 0 ? Math.max(...items.map(i => i.unitPrice)) : 0;
+  const loyaltyDiscount = isFreeDrinkClaimed ? freeDrinkValue : 0;
+  const total = Math.max(0, subtotal - discount - loyaltyDiscount);
   const totalCount = items.reduce((acc, curr) => acc + curr.quantity, 0);
+
+  const toggleFreeDrinkClaim = (stampsCount: number) => {
+    if (isFreeDrinkClaimed) {
+      setIsFreeDrinkClaimed(false);
+      return { success: true, message: 'Free drink reward removed.' };
+    }
+    if (stampsCount < 8) {
+      return {
+        success: false,
+        message: `You currently have ${stampsCount}/8 stamps. Collect 8 stamps to unlock 1 free drink!`,
+      };
+    }
+    if (items.length === 0) {
+      return {
+        success: false,
+        message: 'Please add items to your cart before claiming your free drink reward.',
+      };
+    }
+    setIsFreeDrinkClaimed(true);
+    return {
+      success: true,
+      message: `🎉 1 Free Handcrafted Drink Claimed! ₱${freeDrinkValue} deducted from your order.`,
+    };
+  };
 
   const applyPromoCode = (code: string) => {
     const clean = code.trim().toUpperCase();
@@ -293,7 +329,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setDiscountPercent(20);
       return { success: true, message: '☕ 20% Special Haven discount applied!' };
     }
-    return { success: false, message: 'Invalid promo code. Try "WHITEHAVEN10" for 10% off.' };
+    return { success: false, message: 'Invalid promo code. Try "WHITEHAVEN10" or "COZYCOFFEE".' };
   };
 
   const removePromoCode = () => {
@@ -305,6 +341,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     customerName: string;
     contactNumber: string;
     paymentMethod: PaymentMethod;
+    loyaltyDiscount?: number;
+    claimedFreeDrink?: boolean;
     paymentDetails?: {
       cashTendered?: number;
       change?: number;
@@ -314,6 +352,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }): Order => {
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+    const resolvedLoyaltyDiscount = details.loyaltyDiscount !== undefined ? details.loyaltyDiscount : loyaltyDiscount;
+    const resolvedClaimedFreeDrink = details.claimedFreeDrink !== undefined ? details.claimedFreeDrink : isFreeDrinkClaimed;
+    const resolvedTotal = Math.max(0, subtotal - discount - resolvedLoyaltyDiscount);
+
     const newOrder: Order = {
       id: `order_${Date.now()}`,
       orderNumber: `WHC-${randomSuffix}`,
@@ -321,7 +363,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       items: [...items],
       subtotal,
       discount,
-      total,
+      loyaltyDiscount: resolvedLoyaltyDiscount,
+      claimedFreeDrink: resolvedClaimedFreeDrink,
+      total: resolvedTotal,
       orderType,
       customerName: details.customerName,
       contactNumber: details.contactNumber,
@@ -436,6 +480,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         promoCode,
         applyPromoCode,
         removePromoCode,
+        isFreeDrinkClaimed,
+        setIsFreeDrinkClaimed,
+        toggleFreeDrinkClaim,
+        freeDrinkValue,
+        loyaltyDiscount,
         orders,
         createOrder,
         reorder,

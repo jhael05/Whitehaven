@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { OrderType, PaymentMethod } from '../types/cafe';
+import { OrderType, PaymentMethod, AVAILABLE_VOUCHERS } from '../types/cafe';
 import {
   X,
   Check,
@@ -18,6 +18,10 @@ import {
   Armchair,
   Sparkles,
   QrCode,
+  Tag,
+  Gift,
+  Ticket,
+  CheckCircle2,
 } from 'lucide-react';
 import { GCashLogo, MayaLogo, CardsLogo, CashLogo } from './PaymentLogos';
 import { CafeLogo } from './CafeLogo';
@@ -76,15 +80,52 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
     setTableNumber,
     specialInstructions,
     setSpecialInstructions,
+    promoCode,
+    applyPromoCode,
+    removePromoCode,
+    isFreeDrinkClaimed,
+    toggleFreeDrinkClaim,
+    freeDrinkValue,
+    loyaltyDiscount,
     createOrder,
   } = useCart();
 
-  const { user, isAuthenticated, addLoyaltyStamp } = useAuth();
+  const { user, isAuthenticated, addLoyaltyStamp, claimLoyaltyReward, setStampsCount } = useAuth();
 
   // Checkout form states
   const [customerName, setCustomerName] = useState(user?.name || '');
   const [contactNumber, setContactNumber] = useState(user?.emailOrContact || '');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('gcash');
+
+  // Voucher states in Checkout
+  const [voucherInput, setVoucherInput] = useState(promoCode || '');
+  const [voucherMessage, setVoucherMessage] = useState<{ text: string; success: boolean } | null>(null);
+  const [rewardNotice, setRewardNotice] = useState<string | null>(null);
+
+  const handleApplyVoucher = (codeToApply?: string) => {
+    const target = (codeToApply || voucherInput).trim();
+    if (!target) {
+      setVoucherMessage({ text: 'Please enter or select a promo code.', success: false });
+      return;
+    }
+    const res = applyPromoCode(target);
+    setVoucherMessage({ text: res.message, success: res.success });
+    if (res.success) {
+      setVoucherInput(target.toUpperCase());
+    }
+  };
+
+  const handleClaimFreeDrink = () => {
+    const res = toggleFreeDrinkClaim(user?.stampsCount || 0);
+    setRewardNotice(res.message);
+    setTimeout(() => setRewardNotice(null), 4500);
+  };
+
+  const handleFillDemoStamps = () => {
+    setStampsCount(8);
+    setRewardNotice('✨ 8/8 Stamps loaded! You can now tap "Claim 1 Free Drink" below!');
+    setTimeout(() => setRewardNotice(null), 4500);
+  };
 
   // Randomized seats state for Dine-In
   const [seats, setSeats] = useState<SeatOption[]>(() => generateRandomizedSeats());
@@ -128,7 +169,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
   const [errorMessage, setErrorMessage] = useState('');
 
   // Auto-sync real logged in user details
-  React.useEffect(() => {
+  useEffect(() => {
     if (user && isOpen) {
       setCustomerName(user.name);
       setContactNumber(user.emailOrContact);
@@ -231,15 +272,21 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
       };
     }
 
+    if (isFreeDrinkClaimed) {
+      claimLoyaltyReward();
+    } else {
+      // Reward loyalty stamp for standard orders
+      addLoyaltyStamp(1);
+    }
+
     createOrder({
       customerName,
       contactNumber,
       paymentMethod,
+      loyaltyDiscount,
+      claimedFreeDrink: isFreeDrinkClaimed,
       paymentDetails,
     });
-
-    // Reward loyalty stamp if user is logged in
-    addLoyaltyStamp(1);
 
     onClose();
   };
@@ -775,10 +822,239 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
             )}
           </div>
 
-          {/* 4. Order Summary Overview */}
+          {/* 4. Vouchers & Loyalty Rewards */}
+          <div className="space-y-4 rounded-2xl bg-[#F5ECE2] p-4 border border-[#DECDBE]">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold uppercase tracking-wider text-[#5D4037] flex items-center gap-1.5">
+                <Ticket className="w-4 h-4 text-[#8C5332]" />
+                <span>4. Vouchers & Loyalty Rewards</span>
+              </label>
+            </div>
+
+            {/* A. VOUCHER APPLICATION */}
+            <div className="rounded-xl bg-white p-3.5 border border-[#DECDBE] space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[#3D2517] flex items-center gap-1.5">
+                  <Tag className="w-3.5 h-3.5 text-[#8C5332]" />
+                  <span>Apply Promo Voucher</span>
+                </span>
+                {promoCode && (
+                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-300">
+                    Active: {promoCode} (-₱{discount})
+                  </span>
+                )}
+              </div>
+
+              {/* Promo input field */}
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={voucherInput}
+                    onChange={(e) => setVoucherInput(e.target.value.toUpperCase())}
+                    placeholder="Enter voucher code (e.g. WHITEHAVEN10)"
+                    className="w-full rounded-xl border border-[#DECDBE] bg-white px-3 py-2 text-xs uppercase font-semibold text-[#2C1810] focus:outline-none focus:ring-1 focus:ring-[#8C5332]"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleApplyVoucher()}
+                  className="rounded-xl bg-[#5D4037] hover:bg-[#3D2517] px-4 py-2 text-xs font-bold text-white transition-colors cursor-pointer"
+                >
+                  Apply
+                </button>
+                {promoCode && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      removePromoCode();
+                      setVoucherInput('');
+                      setVoucherMessage({ text: 'Voucher removed.', success: true });
+                    }}
+                    className="rounded-xl bg-gray-100 hover:bg-gray-200 px-3 py-2 text-xs font-medium text-gray-700 transition-colors cursor-pointer"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+
+              {voucherMessage && (
+                <p
+                  className={`text-[11px] font-semibold ${
+                    voucherMessage.success ? 'text-emerald-700' : 'text-red-600'
+                  }`}
+                >
+                  {voucherMessage.text}
+                </p>
+              )}
+
+              {/* Quick Select Voucher Cards */}
+              <div>
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-[#7C6656] mb-1.5">
+                  Available Vouchers (Tap to apply):
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {AVAILABLE_VOUCHERS.map((v) => {
+                    const isCurrent = promoCode === v.code;
+                    return (
+                      <button
+                        key={v.code}
+                        type="button"
+                        onClick={() => handleApplyVoucher(v.code)}
+                        className={`text-left p-2.5 rounded-xl border transition-all cursor-pointer ${
+                          isCurrent
+                            ? 'bg-emerald-50 border-emerald-400 ring-2 ring-emerald-300'
+                            : 'bg-[#FAF7F2] border-[#DECDBE] hover:border-[#8C5332] hover:bg-[#F9F5F0]'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-[11px] font-black text-[#8C5332]">
+                            {v.code}
+                          </span>
+                          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.2 rounded">
+                            {v.discountDisplay}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-[#7C6656] mt-0.5 leading-snug truncate">
+                          {v.title}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* B. LOYALTY STAMPS & 8 STAMPS FREE DRINK CLAIM */}
+            <div className="rounded-xl bg-gradient-to-br from-amber-50 to-orange-50/50 p-4 border border-amber-200 shadow-xs space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-1">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#8C5332] text-amber-200">
+                    <Gift className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-[#3D2517] block">
+                      Digital Loyalty Stamp Card
+                    </span>
+                    <span className="text-[10px] text-[#7C6656]">
+                      Collect 8 stamps = 1 FREE Handcrafted Drink!
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-black text-[#8C5332] bg-white px-2 py-0.5 rounded-full border border-amber-300 shadow-2xs">
+                    {user?.stampsCount || 0} / 8 Stamps
+                  </span>
+                  {/* Quick test helper for immediate review */}
+                  {(user?.stampsCount || 0) < 8 && (
+                    <button
+                      type="button"
+                      onClick={handleFillDemoStamps}
+                      className="text-[10px] font-bold text-[#8C5332] hover:text-[#5D4037] underline cursor-pointer bg-white/70 px-2 py-0.5 rounded"
+                      title="Instantly set stamps to 8 for testing the free drink claim"
+                    >
+                      ⚡ Test with 8 Stamps
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* 8 Stamp Circles Grid */}
+              <div className="grid grid-cols-8 gap-1.5 py-1">
+                {Array.from({ length: 8 }).map((_, idx) => {
+                  const isFilled = idx < (user?.stampsCount || 0);
+                  const isEighth = idx === 7;
+                  return (
+                    <div
+                      key={idx}
+                      className={`h-9 rounded-xl flex flex-col items-center justify-center transition-all ${
+                        isFilled
+                          ? isEighth
+                            ? 'bg-amber-600 text-white font-bold shadow-xs scale-105 ring-2 ring-amber-300'
+                            : 'bg-[#8C5332] text-amber-100 font-semibold shadow-2xs'
+                          : 'border-2 border-dashed border-[#D8C7B6] bg-white/60 text-[#9E8B7A]'
+                      }`}
+                    >
+                      {isFilled ? (
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      ) : (
+                        <span className="text-[10px] font-bold">{idx + 1}</span>
+                      )}
+                      <span className="text-[8px] leading-none mt-0.5">
+                        {isEighth ? 'FREE' : `S${idx + 1}`}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* If reached 8 stamps, show prominent claim button */}
+              {(user?.stampsCount || 0) >= 8 ? (
+                <div className="bg-white rounded-xl p-3 border-2 border-amber-400 shadow-sm space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900">
+                      <Sparkles className="w-4 h-4 text-amber-600 animate-spin" />
+                      <span>🎉 8/8 Stamps Reached! Reward Unlocked!</span>
+                    </div>
+                    <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                      Worth ₱{freeDrinkValue}
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] text-[#7C6656] leading-relaxed">
+                    You have completed all 8 stamps! You can now claim 1 free handcrafted coffee or beverage on this order.
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={handleClaimFreeDrink}
+                    className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                      isFreeDrinkClaimed
+                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white ring-2 ring-emerald-400'
+                        : 'bg-gradient-to-r from-[#8C5332] to-[#B36838] hover:from-[#6F3E22] hover:to-[#8C5332] text-amber-100 hover:text-white animate-pulse'
+                    }`}
+                  >
+                    {isFreeDrinkClaimed ? (
+                      <>
+                        <CheckCircle2 className="w-4 h-4 text-white" />
+                        <span>✓ 1 Free Drink Claimed (-₱{freeDrinkValue}) • Tap to Remove</span>
+                      </>
+                    ) : (
+                      <>
+                        <Gift className="w-4 h-4 text-amber-300" />
+                        <span>🎁 Claim 1 Free Drink Now (Redeem 8 Stamps)</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              ) : (
+                <div className="text-[11px] text-[#7C6656] bg-white/70 p-2 rounded-lg border border-amber-100 flex items-center justify-between">
+                  <span>
+                    Collect <strong>{8 - (user?.stampsCount || 0)} more</strong> stamp{8 - (user?.stampsCount || 0) > 1 ? 's' : ''} to unlock your 1 Free Drink!
+                  </span>
+                  <span className="text-[10px] text-[#8C5332] font-bold">1 order = 1 stamp</span>
+                </div>
+              )}
+
+              {rewardNotice && (
+                <div className="rounded-lg bg-amber-100/90 border border-amber-300 p-2 text-xs font-semibold text-[#8C5332]">
+                  {rewardNotice}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 5. Order Summary Overview */}
           <div className="rounded-2xl bg-[#F0E6DB] p-4 border border-[#DECDBE]">
-            <div className="text-xs font-bold uppercase tracking-wider text-[#5D4037] mb-2">
-              Order Summary ({items.length} items)
+            <div className="text-xs font-bold uppercase tracking-wider text-[#5D4037] mb-2 flex items-center justify-between">
+              <span>Order Summary ({items.length} items)</span>
+              {isFreeDrinkClaimed && (
+                <span className="text-[10px] font-bold bg-amber-200 text-[#8C5332] px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-amber-700" />
+                  Free Drink Applied
+                </span>
+              )}
             </div>
             <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
               {items.map(item => (
@@ -803,11 +1079,20 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
               </div>
               {discount > 0 && (
                 <div className="flex justify-between text-emerald-700 font-semibold">
-                  <span>Discount</span>
+                  <span>Voucher Discount ({promoCode})</span>
                   <span>-₱{discount}</span>
                 </div>
               )}
-              <div className="flex justify-between text-sm font-bold text-[#2C1810] pt-1 border-t border-[#DECDBE]">
+              {loyaltyDiscount > 0 && (
+                <div className="flex justify-between text-[#8C5332] font-bold bg-amber-50/80 px-2 py-1 rounded-md border border-amber-200">
+                  <span className="flex items-center gap-1">
+                    <Gift className="w-3.5 h-3.5 text-amber-600" />
+                    <span>8 Stamps Reward: 1 Free Drink</span>
+                  </span>
+                  <span>-₱{loyaltyDiscount}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm font-bold text-[#2C1810] pt-1.5 border-t border-[#DECDBE]">
                 <span>Total Amount Due</span>
                 <span className="text-[#8C5332] text-base">₱{total}</span>
               </div>

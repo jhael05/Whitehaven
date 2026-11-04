@@ -238,6 +238,21 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
             </div>
           </div>
 
+          {/* Loyalty Reward Badge */}
+          {order.claimedFreeDrink && (
+            <div className="rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 p-3 flex items-center gap-2.5 text-xs text-[#8C5332] font-bold">
+              <div className="h-7 w-7 rounded-full bg-[#8C5332] text-amber-200 flex items-center justify-center shrink-0">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <span>Loyalty Reward Applied: 1 Free Drink Claimed!</span>
+                <p className="text-[10px] text-[#7C6656] font-normal">
+                  8 stamps successfully redeemed for your handcrafted beverage.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Receipt Items */}
           <div className="rounded-2xl border border-[#DECDBE] bg-white p-4">
             <div className="text-xs font-bold text-[#5D4037] uppercase tracking-wider mb-2">
@@ -270,11 +285,20 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
                 <span>₱{order.subtotal}</span>
               </div>
               {order.discount > 0 && (
-                <div className="flex justify-between text-emerald-700">
-                  <span>Discount</span>
+                <div className="flex justify-between text-emerald-700 font-semibold">
+                  <span>Voucher Discount</span>
                   <span>-₱{order.discount}</span>
                 </div>
               )}
+              {order.loyaltyDiscount && order.loyaltyDiscount > 0 ? (
+                <div className="flex justify-between text-[#8C5332] font-bold bg-amber-50 px-2 py-1 rounded border border-amber-200">
+                  <span className="flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                    <span>8 Stamps Reward: 1 Free Drink</span>
+                  </span>
+                  <span>-₱{order.loyaltyDiscount}</span>
+                </div>
+              ) : null}
               <div className="flex justify-between text-sm font-bold text-[#2C1810] pt-1 border-t border-[#DECDBE]">
                 <span>Total Paid</span>
                 <span className="text-[#8C5332] text-base">₱{order.total}</span>

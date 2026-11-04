@@ -187,21 +187,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
                 </div>
               </div>
 
-              {/* Quick Feature Pills */}
-              <div className="mt-4 grid grid-cols-3 gap-2 w-full max-w-md">
-                <div className="rounded-xl bg-[#FAF7F2] border border-[#DECDBE] p-2.5 text-center shadow-sm">
-                  <span className="block text-base">☕</span>
-                  <span className="text-[11px] font-bold text-[#3D2517]">100% Arabica</span>
-                </div>
-                <div className="rounded-xl bg-[#FAF7F2] border border-[#DECDBE] p-2.5 text-center shadow-sm">
-                  <span className="block text-base">🌿</span>
-                  <span className="text-[11px] font-bold text-[#3D2517]">Garden Patio</span>
-                </div>
-                <div className="rounded-xl bg-[#FAF7F2] border border-[#DECDBE] p-2.5 text-center shadow-sm">
-                  <span className="block text-base">⚡</span>
-                  <span className="text-[11px] font-bold text-[#3D2517]">Free Fiber Wi-Fi</span>
-                </div>
-              </div>
+
             </div>
           </div>
         </div>

@@ -87,7 +87,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
           </h2>
 
           <p className="mt-2 text-xs sm:text-sm text-[#6F4E37] leading-relaxed">
-            Hindi po pwedeng umorder nang walang totoong account sa White Haven Café. Kailangan pong mag-log in o gumawa ng account upang ma-save ang iyong resibo, ma-track ang order live, at makatanggap ng coffee stamps.
+            An account is required to place an order at White Haven Café. Please log in or sign up to save your order, track live brewing progress, and earn digital loyalty stamps.
           </p>
 
           <div className="mt-6 space-y-3">
@@ -122,7 +122,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
   const handleSubmitOrder = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isAuthenticated || !user) {
-      setErrorMessage('Kailangan pong naka-log in o may totoong account bago makapag-order.');
+      setErrorMessage('You must be logged in with a registered account to place an order.');
       return;
     }
     if (!customerName.trim()) {

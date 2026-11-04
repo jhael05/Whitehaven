@@ -280,7 +280,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 {!isAuthenticated && (
                   <div className="rounded-xl bg-amber-50 border border-amber-300/80 p-2.5 text-center text-xs text-[#6F4E37] flex items-center justify-center gap-1.5 shadow-xs">
                     <Lock className="w-3.5 h-3.5 text-[#8C5332] shrink-0" />
-                    <span><strong>Account Required:</strong> Log in bago makapag-order</span>
+                    <span><strong>Account Required:</strong> Please log in or sign up to place your order</span>
                   </div>
                 )}
 

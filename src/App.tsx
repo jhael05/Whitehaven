@@ -56,7 +56,7 @@ const MainAppContent: React.FC = () => {
   const handleProceedToCheckout = () => {
     if (!isAuthenticated || !user) {
       setIsCartOpen(false);
-      setAuthNoticeMessage('Kailangan pong mag-log in o gumawa ng totoong account bago makapag-order sa White Haven Café.');
+      setAuthNoticeMessage('Please log in or create a registered account to complete your order at White Haven Café.');
       setAuthInitialMode('login');
       setProceedToCheckoutAfterAuth(true);
       setIsAuthOpen(true);
@@ -240,7 +240,7 @@ const MainAppContent: React.FC = () => {
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
         onRequireAuth={() => {
-          setAuthNoticeMessage('Kailangan pong mag-log in o gumawa ng account bago makapag-order sa White Haven Café.');
+          setAuthNoticeMessage('Please log in or create a registered account to complete your order at White Haven Café.');
           setAuthInitialMode('login');
           setProceedToCheckoutAfterAuth(true);
           setIsAuthOpen(true);

@@ -36,16 +36,15 @@ export const AboutUsSection: React.FC<AboutUsSectionProps> = ({ onOpenSocialModa
             <div className="lg:col-span-6">
               <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-[#E8DCCF] group">
                 <img
-                  src="/assets/aistudio/863738688_2008525776498378_6810362535445627716_n_9bc0980e.png"
-                  alt="White Haven Cafe Outdoor Garden Deck Novaliches"
-                  className="w-full h-[380px] sm:h-[460px] object-cover group-hover:scale-105 transition-transform duration-700"
+                  src="/assets/aistudio/592953966_10215438617155888_3522533946472374288_n_8124cb4d.jpg"
+                  alt="White Haven Cafe Novaliches Storefront and Exterior"
+                  className="w-full h-[380px] sm:h-[460px] object-cover object-center group-hover:scale-105 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                <div className="absolute bottom-4 left-4 right-4 text-white text-xs flex items-center justify-between">
-                  <span className="rounded-full bg-black/40 backdrop-blur-md px-3 py-1 font-semibold">
-                    🌿 Cozy Garden Deck & Cafe Lounge
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute bottom-4 right-4 text-white text-xs">
+                  <span className="rounded-full bg-black/50 backdrop-blur-md px-3 py-1 font-semibold text-amber-200 border border-white/20">
+                    📍 Novaliches, QC
                   </span>
-                  <span className="font-semibold text-amber-200">Novaliches, QC</span>
                 </div>
               </div>
             </div>

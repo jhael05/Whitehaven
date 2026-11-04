@@ -54,12 +54,12 @@ export const Navbar: React.FC<NavbarProps> = ({
     <header className="sticky top-0 z-40 w-full bg-[#EFE7DD]/95 backdrop-blur-md border-b border-[#D8C7B6] shadow-sm transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          {/* Brand Logo matching the screenshots */}
+          {/* Brand Logo matching the screenshots without enclosing border */}
           <button
             onClick={() => onNavigate('home')}
-            className="flex items-center text-left focus:outline-none group cursor-pointer bg-[#FAF7F2] hover:bg-white transition-all px-3 py-1.5 rounded-2xl border border-[#D8C7B6]/80 shadow-sm active:scale-95"
+            className="flex items-center text-left focus:outline-none group cursor-pointer transition-transform hover:opacity-90 active:scale-95"
           >
-            <CafeLogo size="md" variant="horizontal" />
+            <CafeLogo size="md" variant="horizontal" noBorder />
           </button>
 
           {/* Navigation Links matching screenshot: ABOUT US | MENU | LOG IN */}

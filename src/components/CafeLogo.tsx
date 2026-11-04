@@ -7,6 +7,7 @@ interface CafeLogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   variant?: 'horizontal' | 'stacked' | 'badge' | 'icon-only';
   light?: boolean;
+  noBorder?: boolean;
 }
 
 export const CafeLogo: React.FC<CafeLogoProps> = ({
@@ -14,6 +15,7 @@ export const CafeLogo: React.FC<CafeLogoProps> = ({
   size = 'md',
   variant = 'horizontal',
   light = false,
+  noBorder = false,
 }) => {
   const textColor = light ? 'text-white' : 'text-[#2C1810]';
   const accentColor = light ? 'text-amber-200' : 'text-[#8C5332]';
@@ -74,7 +76,9 @@ export const CafeLogo: React.FC<CafeLogoProps> = ({
   return (
     <div className={`inline-flex items-center gap-3 ${className}`}>
       <div
-        className={`relative overflow-hidden rounded-xl border ${borderColor} bg-[#FAF7F2] p-0.5 shadow-sm shrink-0 ${iconSizes[size]}`}
+        className={`relative overflow-hidden rounded-xl ${
+          noBorder ? '' : `border ${borderColor} bg-[#FAF7F2] p-0.5 shadow-sm`
+        } shrink-0 ${iconSizes[size]}`}
       >
         <img
           src={OFFICIAL_CAFE_LOGO_URL}

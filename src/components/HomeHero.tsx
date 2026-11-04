@@ -38,20 +38,6 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
 
   return (
     <section className="relative overflow-hidden py-8 md:py-14">
-      {/* Background Coffee Bean Accent SVGs */}
-      <div className="absolute top-10 left-6 opacity-10 pointer-events-none">
-        <svg width="120" height="120" viewBox="0 0 100 100" fill="currentColor" className="text-[#5D4037]">
-          <ellipse cx="50" cy="50" rx="35" ry="45" transform="rotate(-30 50 50)" />
-          <path d="M50 15 C55 35 45 65 50 85" stroke="currentColor" strokeWidth="4" fill="none" />
-        </svg>
-      </div>
-      <div className="absolute bottom-6 right-8 opacity-10 pointer-events-none">
-        <svg width="160" height="160" viewBox="0 0 100 100" fill="currentColor" className="text-[#5D4037]">
-          <ellipse cx="50" cy="50" rx="35" ry="45" transform="rotate(25 50 50)" />
-          <path d="M50 15 C45 35 55 65 50 85" stroke="currentColor" strokeWidth="4" fill="none" />
-        </svg>
-      </div>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Main Hero Card Container - matches the aesthetic rounded card in screenshot */}
         <div className="rounded-3xl border border-[#D8C7B6] bg-[#E8DCCF]/80 backdrop-blur-md p-6 sm:p-10 lg:p-12 shadow-xl">

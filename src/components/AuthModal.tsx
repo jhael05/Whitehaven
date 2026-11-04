@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { CafeLogo } from './CafeLogo';
 import { useAuth } from '../context/AuthContext';
-import { X, ArrowLeft, CheckCircle2, AlertCircle, Mail, Eye, EyeOff } from 'lucide-react';
+import { X, ArrowLeft, CheckCircle2, AlertCircle, Mail, Eye, EyeOff, Lock } from 'lucide-react';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialMode?: 'login' | 'signup' | 'forgot';
+  noticeMessage?: string;
+  onSuccess?: () => void;
 }
 
 type ForgotStep = 'enter_contact' | 'enter_otp' | 'new_password';
@@ -15,6 +17,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   isOpen,
   onClose,
   initialMode = 'login',
+  noticeMessage,
+  onSuccess,
 }) => {
   const {
     loginWithCredentials,
@@ -99,6 +103,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setSuccessToast(`Welcome back, ${res.user?.name}!`);
     setTimeout(() => {
       handleClose();
+      if (onSuccess) onSuccess();
     }, 700);
   };
 
@@ -140,6 +145,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setSuccessToast(`Account created successfully! Welcome, ${res.user?.name}!`);
     setTimeout(() => {
       handleClose();
+      if (onSuccess) onSuccess();
     }, 700);
   };
 
@@ -172,6 +178,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setSuccessToast(`Logged in successfully with ${res.user?.name}!`);
     setTimeout(() => {
       handleClose();
+      if (onSuccess) onSuccess();
     }, 700);
   };
 
@@ -415,6 +422,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   LOG IN
                 </h2>
 
+                {noticeMessage && (
+                  <div className="mt-3 w-full rounded-2xl bg-amber-50 border border-amber-300/80 p-3 text-left flex items-start gap-2.5 shadow-xs">
+                    <div className="w-6 h-6 rounded-full bg-amber-200/60 flex items-center justify-center shrink-0 mt-0.5 text-[#8C5332]">
+                      <Lock className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-[#8C5332]">
+                        Account Required to Order
+                      </p>
+                      <p className="text-[11px] text-[#6F4E37] mt-0.5 leading-snug">
+                        {noticeMessage}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <form onSubmit={handleLogin} className="mt-4 w-full space-y-3.5">
                   <div>
                     <label className="block text-xs font-medium text-[#4A2E1B] mb-1">
@@ -602,6 +625,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <p className="text-xs text-[#6F4E37] text-center mt-0.5">
                   Sign up with your real name and email/number to save your orders & stamps.
                 </p>
+
+                {noticeMessage && (
+                  <div className="mt-3 w-full rounded-2xl bg-amber-50 border border-amber-300/80 p-3 text-left flex items-start gap-2.5 shadow-xs">
+                    <div className="w-6 h-6 rounded-full bg-amber-200/60 flex items-center justify-center shrink-0 mt-0.5 text-[#8C5332]">
+                      <Lock className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-[#8C5332]">
+                        Account Required to Order
+                      </p>
+                      <p className="text-[11px] text-[#6F4E37] mt-0.5 leading-snug">
+                        {noticeMessage}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 <form onSubmit={handleSignup} className="mt-4 w-full space-y-3">
                   <div>

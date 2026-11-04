@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
-import { X, Trash2, Plus, Minus, Tag, ArrowRight, ShoppingBag } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { X, Trash2, Plus, Minus, Tag, ArrowRight, ShoppingBag, Lock } from 'lucide-react';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onClose,
   onProceedToCheckout,
 }) => {
+  const { isAuthenticated } = useAuth();
   const {
     items,
     updateQuantity,
@@ -275,6 +277,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
               {/* Action Buttons */}
               <div className="space-y-2">
+                {!isAuthenticated && (
+                  <div className="rounded-xl bg-amber-50 border border-amber-300/80 p-2.5 text-center text-xs text-[#6F4E37] flex items-center justify-center gap-1.5 shadow-xs">
+                    <Lock className="w-3.5 h-3.5 text-[#8C5332] shrink-0" />
+                    <span><strong>Account Required:</strong> Log in bago makapag-order</span>
+                  </div>
+                )}
+
                 <button
                   type="button"
                   onClick={() => {
@@ -283,8 +292,17 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   }}
                   className="w-full rounded-full bg-[#3D2517] hover:bg-[#2C1810] active:scale-[0.99] py-3.5 px-6 text-sm font-semibold text-[#FAF7F2] shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <span>Proceed to Checkout</span>
-                  <ArrowRight className="w-4 h-4" />
+                  {!isAuthenticated ? (
+                    <>
+                      <Lock className="w-4 h-4 text-amber-300" />
+                      <span>Log In / Sign Up to Order</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Proceed to Checkout</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
                 </button>
 
                 <button

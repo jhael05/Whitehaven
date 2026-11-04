@@ -2,15 +2,17 @@ import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { OrderType, PaymentMethod } from '../types/cafe';
-import { X, Check, CreditCard, Banknote, Smartphone, Store, ShoppingBag, Clock } from 'lucide-react';
+import { X, Check, CreditCard, Banknote, Smartphone, Store, ShoppingBag, Clock, Lock, UserCheck } from 'lucide-react';
 import { GCashLogo, MayaLogo, CardsLogo, CashLogo } from './PaymentLogos';
+import { CafeLogo } from './CafeLogo';
 
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onRequireAuth?: () => void;
 }
 
-export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
+export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onRequireAuth }) => {
   const {
     items,
     subtotal,
@@ -27,7 +29,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
     createOrder,
   } = useCart();
 
-  const { user, addLoyaltyStamp } = useAuth();
+  const { user, isAuthenticated, addLoyaltyStamp } = useAuth();
 
   // Checkout form states
   const [customerName, setCustomerName] = useState(user?.name || '');
@@ -59,11 +61,70 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
 
   if (!isOpen || items.length === 0) return null;
 
+  // STRICT LOGIN GUARD: Ordering is forbidden without logging in or signing up
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div className="relative w-full max-w-md rounded-3xl bg-[#FAF7F2] p-7 shadow-2xl border border-[#D8C7B6] text-center">
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 rounded-full bg-black/5 p-2 text-[#5D4037] hover:bg-black/10 transition-colors cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          <div className="mx-auto mb-4 flex justify-center">
+            <CafeLogo size="md" variant="stacked" />
+          </div>
+
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 text-[#8C5332] px-3 py-1 text-xs font-bold uppercase tracking-wider mb-3">
+            <Lock className="w-3.5 h-3.5" />
+            <span>Account Required</span>
+          </div>
+
+          <h2 className="font-serif-cafe text-2xl font-bold text-[#2C1810]">
+            Log In or Sign Up to Order
+          </h2>
+
+          <p className="mt-2 text-xs sm:text-sm text-[#6F4E37] leading-relaxed">
+            Hindi po pwedeng umorder nang walang totoong account sa White Haven Café. Kailangan pong mag-log in o gumawa ng account upang ma-save ang iyong resibo, ma-track ang order live, at makatanggap ng coffee stamps.
+          </p>
+
+          <div className="mt-6 space-y-3">
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                if (onRequireAuth) onRequireAuth();
+              }}
+              className="w-full rounded-full bg-[#3D2517] hover:bg-[#2C1810] active:scale-[0.99] py-3.5 px-6 text-sm font-bold text-[#FAF7F2] shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <UserCheck className="w-4 h-4 text-amber-300" />
+              <span>Log In / Sign Up Now</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full text-center text-xs text-[#7C6656] hover:text-[#2C1810] py-1 font-medium cursor-pointer"
+            >
+              Return to Menu
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const parsedCash = parseFloat(cashTendered) || 0;
   const computedChange = parsedCash > total ? parsedCash - total : 0;
 
   const handleSubmitOrder = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAuthenticated || !user) {
+      setErrorMessage('Kailangan pong naka-log in o may totoong account bago makapag-order.');
+      return;
+    }
     if (!customerName.trim()) {
       setErrorMessage('Please enter your name.');
       return;

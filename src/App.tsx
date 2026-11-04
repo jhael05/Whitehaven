@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider, useCart } from './context/CartContext';
 import { Navbar } from './components/Navbar';
 import { HomeHero } from './components/HomeHero';
@@ -22,12 +22,13 @@ import { LoyaltyStampBanner } from './components/LoyaltyStampBanner';
 
 import { MenuItem, Order } from './types/cafe';
 import { CAFE_INFO } from './data/menuData';
-import { ShoppingBag, ArrowRight } from 'lucide-react';
+import { ShoppingBag, ArrowRight, Lock } from 'lucide-react';
 
 const SOCIALS_STORAGE_KEY = 'white_haven_social_links';
 
 const MainAppContent: React.FC = () => {
-  const { totalCount, total, activeOrderModal, setActiveOrderModal } = useCart();
+  const { totalCount, total, items, activeOrderModal, setActiveOrderModal } = useCart();
+  const { isAuthenticated, user } = useAuth();
 
   // Navigation section
   const [activeSection, setActiveSection] = useState<'home' | 'menu' | 'about'>('home');
@@ -35,6 +36,8 @@ const MainAppContent: React.FC = () => {
   // Modals state
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authInitialMode, setAuthInitialMode] = useState<'login' | 'signup' | 'forgot'>('login');
+  const [authNoticeMessage, setAuthNoticeMessage] = useState<string>('');
+  const [proceedToCheckoutAfterAuth, setProceedToCheckoutAfterAuth] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isOrdersHistoryOpen, setIsOrdersHistoryOpen] = useState(false);
@@ -48,6 +51,27 @@ const MainAppContent: React.FC = () => {
     setTimeout(() => {
       setToastMessage((current) => (current === msg ? null : current));
     }, 3200);
+  };
+
+  const handleProceedToCheckout = () => {
+    if (!isAuthenticated || !user) {
+      setIsCartOpen(false);
+      setAuthNoticeMessage('Kailangan pong mag-log in o gumawa ng totoong account bago makapag-order sa White Haven Café.');
+      setAuthInitialMode('login');
+      setProceedToCheckoutAfterAuth(true);
+      setIsAuthOpen(true);
+      return;
+    }
+    setAuthNoticeMessage('');
+    setIsCheckoutOpen(true);
+  };
+
+  const handleAuthSuccess = () => {
+    if (proceedToCheckoutAfterAuth && items.length > 0) {
+      setProceedToCheckoutAfterAuth(false);
+      setAuthNoticeMessage('');
+      setIsCheckoutOpen(true);
+    }
   };
 
   // Social links state with localStorage persistence & automatic migration to canonical URLs
@@ -178,11 +202,20 @@ const MainAppContent: React.FC = () => {
 
             <button
               type="button"
-              onClick={() => setIsCheckoutOpen(true)}
-              className="flex items-center gap-2 rounded-full bg-[#8C5332] hover:bg-[#A0633F] px-4 py-2 text-xs font-bold text-white shadow transition-all active:scale-95"
+              onClick={handleProceedToCheckout}
+              className="flex items-center gap-2 rounded-full bg-[#8C5332] hover:bg-[#A0633F] px-4 py-2 text-xs font-bold text-white shadow transition-all active:scale-95 cursor-pointer"
             >
-              <span>Checkout</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              {!isAuthenticated ? (
+                <>
+                  <Lock className="w-3.5 h-3.5 text-amber-300" />
+                  <span>Log In to Order</span>
+                </>
+              ) : (
+                <>
+                  <span>Checkout</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -199,20 +232,32 @@ const MainAppContent: React.FC = () => {
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
-        onProceedToCheckout={() => setIsCheckoutOpen(true)}
+        onProceedToCheckout={handleProceedToCheckout}
       />
 
       {/* Checkout Modal (Pick-up vs In-Store + Cash, Card, GCash, Maya) */}
       <CheckoutModal
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
+        onRequireAuth={() => {
+          setAuthNoticeMessage('Kailangan pong mag-log in o gumawa ng account bago makapag-order sa White Haven Café.');
+          setAuthInitialMode('login');
+          setProceedToCheckoutAfterAuth(true);
+          setIsAuthOpen(true);
+        }}
       />
 
       {/* Auth Modal (Login, Signup, Socials, 3-Step OTP Forgot Password) */}
       <AuthModal
         isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
+        onClose={() => {
+          setIsAuthOpen(false);
+          setProceedToCheckoutAfterAuth(false);
+          setAuthNoticeMessage('');
+        }}
         initialMode={authInitialMode}
+        noticeMessage={authNoticeMessage}
+        onSuccess={handleAuthSuccess}
       />
 
       {/* Live Order Tracker Modal */}

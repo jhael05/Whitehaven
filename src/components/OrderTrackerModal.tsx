@@ -1,7 +1,6 @@
 import React from 'react';
 import { Order } from '../types/cafe';
-import { useCart } from '../context/CartContext';
-import { X, CheckCircle2, Clock, Coffee, Printer, Store, ShoppingBag, Sparkles, FastForward, Check } from 'lucide-react';
+import { X, CheckCircle2, Clock, Coffee, Printer, Store, ShoppingBag, Sparkles, Check } from 'lucide-react';
 
 interface OrderTrackerModalProps {
   order: Order | null;
@@ -16,7 +15,6 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
   onClose,
   onOrderAgain,
 }) => {
-  const { advanceOrderStatus } = useCart();
   if (!isOpen || !order) return null;
 
   const steps = [
@@ -75,7 +73,7 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
 
         {/* Live Status Progress Stepper */}
         <div className="p-6 bg-[#F5ECE2] border-b border-[#DECDBE]">
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-[#5D4037] block">
                 Live Order Tracker • Stage {currentStep + 1} of 4
@@ -105,19 +103,40 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
                 )}
                 <span className="capitalize">{order.status}</span>
               </span>
+            </div>
+          </div>
 
-              {/* Fast Forward Stage Button (Testing/Staff Action) */}
-              {order.status !== 'completed' && (
-                <button
-                  type="button"
-                  onClick={() => advanceOrderStatus(order.id)}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#3D2517] hover:bg-[#2C1810] text-amber-200 text-[10px] font-bold shadow-xs transition-colors cursor-pointer"
-                  title="Simulate barista advancing the order stage immediately"
-                >
-                  <FastForward className="w-3 h-3" />
-                  <span>Next Step</span>
-                </button>
-              )}
+          {/* Automatic Progress Tracker */}
+          <div className="mb-4 bg-white/70 rounded-2xl p-2.5 border border-[#DECDBE]/80 shadow-xs">
+            <div className="flex items-center justify-between text-[11px] font-medium text-[#7C6656] mb-1.5">
+              <span className="flex items-center gap-1.5">
+                <span className={`inline-block w-2 h-2 rounded-full ${order.status === 'completed' ? 'bg-emerald-500' : 'bg-[#8C5332] animate-ping'}`} />
+                <span className="font-semibold text-[#3D2517]">
+                  {order.status === 'completed' ? 'Order Completed' : 'Automatic Live Tracking'}
+                </span>
+              </span>
+              <span className="text-[10px] text-[#8C5332] font-semibold">
+                {order.status === 'received' && 'Progressing automatically to Brewing...'}
+                {order.status === 'preparing' && 'Progressing automatically to Serving...'}
+                {order.status === 'ready' && 'Progressing automatically to Complete...'}
+                {order.status === 'completed' && 'All 4 stages completed ✓'}
+              </span>
+            </div>
+            <div className="w-full h-2 rounded-full bg-[#E5D7C7] overflow-hidden">
+              <div
+                className="h-full transition-all duration-700 ease-out rounded-full"
+                style={{
+                  width:
+                    order.status === 'received'
+                      ? '25%'
+                      : order.status === 'preparing'
+                      ? '50%'
+                      : order.status === 'ready'
+                      ? '75%'
+                      : '100%',
+                  backgroundColor: order.status === 'completed' ? '#059669' : '#8C5332',
+                }}
+              />
             </div>
           </div>
 

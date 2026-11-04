@@ -113,28 +113,48 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const notifyOrderUpdate = (
-    order: Order,
+  const updateOrderStatus = (
+    orderId: string,
     newStatus: OrderStatus,
     title: string,
     message: string
   ) => {
-    const updatedOrder: Order = {
-      ...order,
-      status: newStatus,
-      statusUpdatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
+    const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    let resolvedOrderNumber = '';
 
-    setOrders(prev => prev.map(o => (o.id === order.id ? updatedOrder : o)));
-    setActiveOrderModal(prev => (prev?.id === order.id ? updatedOrder : prev));
+    setOrders(prev =>
+      prev.map(o => {
+        if (o.id === orderId) {
+          resolvedOrderNumber = o.orderNumber;
+          return {
+            ...o,
+            status: newStatus,
+            statusUpdatedAt: timeNow,
+          };
+        }
+        return o;
+      })
+    );
+
+    setActiveOrderModal(prev => {
+      if (prev && prev.id === orderId) {
+        resolvedOrderNumber = resolvedOrderNumber || prev.orderNumber;
+        return {
+          ...prev,
+          status: newStatus,
+          statusUpdatedAt: timeNow,
+        };
+      }
+      return prev;
+    });
 
     setOrderNotification({
-      id: `notif_${Date.now()}`,
-      orderNumber: order.orderNumber,
+      id: `notif_${Date.now()}_${newStatus}`,
+      orderNumber: resolvedOrderNumber,
       status: newStatus,
       title,
       message,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      timestamp: timeNow,
     });
 
     playNotificationChime(newStatus);
@@ -145,43 +165,30 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const advanceOrderStatus = (orderId: string) => {
-    const target = orders.find(o => o.id === orderId);
-    if (!target) return;
-
-    if (target.status === 'received') {
-      notifyOrderUpdate(
-        target,
-        'preparing',
-        '🔥 Brewing & Crafting',
-        `Order ${target.orderNumber} is now brewing at the White Haven espresso bar.`
-      );
-    } else if (target.status === 'preparing') {
-      notifyOrderUpdate(
-        target,
-        'ready',
-        '🎉 Ready for Serving',
-        target.orderType === 'pickup'
-          ? `Order ${target.orderNumber} is packed & ready at the pick-up counter!`
-          : `Order ${target.orderNumber} is freshly brewed & being served to ${target.tableNumber || 'your table'}!`
-      );
-    } else if (target.status === 'ready') {
-      notifyOrderUpdate(
-        target,
-        'completed',
-        '✨ Order Completed',
-        `Order ${target.orderNumber} is completed! Enjoy your handcrafted coffee at White Haven!`
-      );
-      try {
-        confetti({
-          particleCount: 90,
-          spread: 80,
-          origin: { y: 0.5 },
-          colors: ['#00897B', '#8C5332', '#F5ECE2', '#007DFE'],
-        });
-      } catch {
-        // ignore
+    setOrders(prev => {
+      const target = prev.find(o => o.id === orderId);
+      if (!target) return prev;
+      if (target.status === 'received') {
+        setTimeout(() => updateOrderStatus(orderId, 'preparing', '🔥 Brewing & Crafting', `Order ${target.orderNumber} is now brewing at the espresso bar.`), 0);
+      } else if (target.status === 'preparing') {
+        setTimeout(() => updateOrderStatus(orderId, 'ready', target.orderType === 'pickup' ? '🎉 Ready for Pick-up!' : '🎉 Serving to Table!', target.orderType === 'pickup' ? `Order ${target.orderNumber} is packed & ready at the pick-up counter!` : `Order ${target.orderNumber} is freshly brewed & being served to ${target.tableNumber || 'your table'}!`), 0);
+      } else if (target.status === 'ready') {
+        setTimeout(() => {
+          updateOrderStatus(orderId, 'completed', '✨ Order Completed!', `Order ${target.orderNumber} is completed! Enjoy your handcrafted coffee at White Haven!`);
+          try {
+            confetti({
+              particleCount: 100,
+              spread: 80,
+              origin: { y: 0.5 },
+              colors: ['#00897B', '#8C5332', '#F5ECE2', '#007DFE', '#FFB300'],
+            });
+          } catch {
+            // ignore
+          }
+        }, 0);
       }
-    }
+      return prev;
+    });
   };
 
   useEffect(() => {
@@ -344,9 +351,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setActiveOrderModal(newOrder);
 
-    // Initial stage 1 notification
+    // Stage 1: Order Received (Immediate)
     setOrderNotification({
-      id: `notif_${Date.now()}`,
+      id: `notif_${Date.now()}_received`,
       orderNumber: newOrder.orderNumber,
       status: 'received',
       title: '☕ Order Received!',
@@ -355,47 +362,47 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
     playNotificationChime('received');
 
-    // Stage 2: Brewing & Crafting (7 seconds)
+    // Stage 2: Brewing & Crafting (4.5 seconds - completely automatic!)
     setTimeout(() => {
-      notifyOrderUpdate(
-        newOrder,
+      updateOrderStatus(
+        newOrder.id,
         'preparing',
         '🔥 Brewing & Crafting',
         `Order ${newOrder.orderNumber} is now brewing at the espresso bar.`
       );
-    }, 7000);
+    }, 4500);
 
-    // Stage 3: Ready for Pick-up or Serving (18 seconds)
+    // Stage 3: Ready for Pick-up or Serving (10 seconds - completely automatic!)
     setTimeout(() => {
-      notifyOrderUpdate(
-        newOrder,
+      updateOrderStatus(
+        newOrder.id,
         'ready',
         newOrder.orderType === 'pickup' ? '🎉 Ready for Pick-up!' : '🎉 Serving to Table!',
         newOrder.orderType === 'pickup'
           ? `Order ${newOrder.orderNumber} is ready at the counter for collection.`
           : `Order ${newOrder.orderNumber} is ready and heading to ${newOrder.tableNumber || 'your table'}!`
       );
-    }, 18000);
+    }, 10000);
 
-    // Stage 4: Order Completed (30 seconds) - reaches full 4 stages!
+    // Stage 4: Order Completed (16 seconds - reaches all 4 stages automatically!)
     setTimeout(() => {
-      notifyOrderUpdate(
-        newOrder,
+      updateOrderStatus(
+        newOrder.id,
         'completed',
         '✨ Order Completed!',
-        `Order ${newOrder.orderNumber} is completed. Thank you for choosing White Haven Café! Enjoy your drinks!`
+        `Order ${newOrder.orderNumber} is completed! Thank you for choosing White Haven Café!`
       );
       try {
         confetti({
-          particleCount: 100,
-          spread: 80,
+          particleCount: 110,
+          spread: 85,
           origin: { y: 0.5 },
           colors: ['#00897B', '#8C5332', '#F5ECE2', '#007DFE', '#FFB300'],
         });
       } catch {
         // ignore
       }
-    }, 30000);
+    }, 16000);
 
     return newOrder;
   };

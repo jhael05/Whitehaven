@@ -178,30 +178,30 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
             <div className="lg:col-span-5 flex flex-col items-center">
               <div className="relative w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border-4 border-[#FAF7F2] bg-[#FAF7F2] group">
                 <img
-                  src="/assets/aistudio/1792769292505_ed774f02.jpg"
-                  alt="White Haven Cafe Latte Art on Rustic Wood"
-                  className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-700"
+                  src="/assets/aistudio/662299249_122121441783158309_7167196707704636690_n_79ade16d.jpg"
+                  alt="White Haven Cafe Outdoor Garden Patio Lounge"
+                  className="w-full h-80 sm:h-96 object-cover object-center group-hover:scale-105 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent pointer-events-none" />
 
                 {/* Floating Emblem Logo Badge in bottom corner */}
                 <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-white">
                   <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-full bg-[#FAF7F2] p-1 shadow-md flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full bg-[#FAF7F2] p-1 shadow-md flex items-center justify-center shrink-0">
                       <CafeLogo size="sm" variant="stacked" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold tracking-widest uppercase">
-                        Freshly Brewed
+                      <div className="text-xs font-bold tracking-widest uppercase text-white drop-shadow">
+                        Garden Patio Lounge
                       </div>
-                      <div className="text-[11px] text-amber-200">
-                        Matcha • Mocha • Spanish Latte
+                      <div className="text-[11px] text-amber-200 drop-shadow">
+                        Cozy Ambience • Novaliches, QC
                       </div>
                     </div>
                   </div>
 
-                  <span className="rounded-full bg-black/40 backdrop-blur-md px-3 py-1 text-xs font-semibold border border-white/20">
-                    From ₱130
+                  <span className="rounded-full bg-black/50 backdrop-blur-md px-3 py-1 text-xs font-semibold border border-white/20 whitespace-nowrap">
+                    Visit Us
                   </span>
                 </div>
               </div>

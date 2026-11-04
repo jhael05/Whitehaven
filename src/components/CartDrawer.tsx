@@ -12,7 +12,7 @@ import {
   ShoppingBag,
   Lock,
   Gift,
-  Sparkles,
+  Award,
   CheckCircle2,
   Check,
 } from 'lucide-react';
@@ -72,7 +72,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
   const handleFill8Stamps = () => {
     setStampsCount(8);
-    setStampNotice('✨ 8/8 Stamps loaded! Tap "Claim 1 Free Drink" below!');
+    setStampNotice('8/8 Stamps loaded! Tap "Claim 1 Free Drink" below!');
     setTimeout(() => setStampNotice(null), 4000);
   };
 
@@ -345,7 +345,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-[11px] text-[#7C6656]">
                       <span className="font-bold text-amber-900 flex items-center gap-1">
-                        <Sparkles className="w-3 h-3 text-amber-600" />
+                        <Award className="w-3.5 h-3.5 text-amber-600" />
                         8/8 Stamps Reached!
                       </span>
                       <span className="text-emerald-700 font-bold">1 Free Drink (₱{freeDrinkValue})</span>

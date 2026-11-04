@@ -1,6 +1,6 @@
 import React from 'react';
 import { Order } from '../types/cafe';
-import { X, CheckCircle2, Clock, Coffee, Printer, Store, ShoppingBag, Sparkles, Check } from 'lucide-react';
+import { X, CheckCircle2, Clock, Coffee, Printer, Store, ShoppingBag, Award, Gift, Check } from 'lucide-react';
 
 interface OrderTrackerModalProps {
   order: Order | null;
@@ -99,7 +99,7 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
                 {order.status !== 'completed' ? (
                   <Clock className="w-3.5 h-3.5 animate-spin text-[#8C5332]" />
                 ) : (
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                  <Award className="w-3.5 h-3.5 text-emerald-600" />
                 )}
                 <span className="capitalize">{order.status}</span>
               </span>
@@ -242,7 +242,7 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
           {order.claimedFreeDrink && (
             <div className="rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 p-3 flex items-center gap-2.5 text-xs text-[#8C5332] font-bold">
               <div className="h-7 w-7 rounded-full bg-[#8C5332] text-amber-200 flex items-center justify-center shrink-0">
-                <Sparkles className="w-4 h-4" />
+                <Gift className="w-4 h-4 text-amber-200" />
               </div>
               <div>
                 <span>Loyalty Reward Applied: 1 Free Drink Claimed!</span>
@@ -293,7 +293,7 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
               {order.loyaltyDiscount && order.loyaltyDiscount > 0 ? (
                 <div className="flex justify-between text-[#8C5332] font-bold bg-amber-50 px-2 py-1 rounded border border-amber-200">
                   <span className="flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                    <Gift className="w-3.5 h-3.5 text-amber-600" />
                     <span>8 Stamps Reward: 1 Free Drink</span>
                   </span>
                   <span>-₱{order.loyaltyDiscount}</span>

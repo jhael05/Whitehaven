@@ -22,7 +22,7 @@ import { LoyaltyStampBanner } from './components/LoyaltyStampBanner';
 
 import { MenuItem, Order } from './types/cafe';
 import { CAFE_INFO } from './data/menuData';
-import { ShoppingBag, ArrowRight, Lock, X, Bell, CheckCircle2, Sparkles, Coffee } from 'lucide-react';
+import { ShoppingBag, ArrowRight, Lock, X, Bell, CheckCircle2, Award, Coffee } from 'lucide-react';
 
 const SOCIALS_STORAGE_KEY = 'white_haven_social_links';
 
@@ -169,7 +169,7 @@ const MainAppContent: React.FC = () => {
           <div className="mt-1 flex items-start gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#3D2517] text-white shrink-0 mt-0.5">
               {orderNotification.status === 'completed' ? (
-                <Sparkles className="w-5 h-5 text-amber-300" />
+                <Award className="w-5 h-5 text-amber-300" />
               ) : orderNotification.status === 'ready' ? (
                 <CheckCircle2 className="w-5 h-5 text-emerald-400" />
               ) : (

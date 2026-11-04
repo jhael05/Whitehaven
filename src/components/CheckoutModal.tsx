@@ -16,7 +16,7 @@ import {
   Dices,
   Shuffle,
   Armchair,
-  Sparkles,
+  Award,
   QrCode,
   Tag,
   Gift,
@@ -123,7 +123,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
 
   const handleFillDemoStamps = () => {
     setStampsCount(8);
-    setRewardNotice('✨ 8/8 Stamps loaded! You can now tap "Claim 1 Free Drink" below!');
+    setRewardNotice('8/8 Stamps loaded! You can now tap "Claim 1 Free Drink" below!');
     setTimeout(() => setRewardNotice(null), 4500);
   };
 
@@ -438,7 +438,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                 {/* Randomized Pick Feedback Notice */}
                 {seatNotice && (
                   <div className="p-2.5 rounded-xl bg-amber-100 border border-amber-300 text-xs font-semibold text-amber-900 flex items-center gap-2 animate-fade-in">
-                    <span>✨</span>
+                    <span>☕</span>
                     <span>{seatNotice}</span>
                   </div>
                 )}
@@ -994,7 +994,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                 <div className="bg-white rounded-xl p-3 border-2 border-amber-400 shadow-sm space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900">
-                      <Sparkles className="w-4 h-4 text-amber-600 animate-spin" />
+                      <Award className="w-4 h-4 text-amber-600" />
                       <span>🎉 8/8 Stamps Reached! Reward Unlocked!</span>
                     </div>
                     <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
@@ -1051,7 +1051,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
               <span>Order Summary ({items.length} items)</span>
               {isFreeDrinkClaimed && (
                 <span className="text-[10px] font-bold bg-amber-200 text-[#8C5332] px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-amber-700" />
+                  <Gift className="w-3 h-3 text-amber-700" />
                   Free Drink Applied
                 </span>
               )}

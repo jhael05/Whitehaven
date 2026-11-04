@@ -99,14 +99,17 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
                 <div
                   key={item.id}
                   onClick={() => onSelectItem(item)}
-                  className="rounded-3xl bg-[#D9C5B2] hover:bg-[#CFB9A4] p-5 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col items-center text-center cursor-pointer border border-[#C7B19C] group"
+                  className="rounded-3xl bg-[#D9C5B2] hover:bg-[#CFB9A4] p-5 shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col items-center text-center cursor-pointer border border-[#C7B19C] hover:border-[#C29B63]/60 group relative overflow-hidden"
                 >
                   <div className="relative w-44 h-44 rounded-2xl overflow-hidden bg-white shadow-sm mb-4">
                     <img
                       src={item.image}
                       alt={item.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                     />
+                    <div className="absolute top-2 left-2 rounded-full bg-[#2C1810]/85 backdrop-blur-md px-2.5 py-0.5 text-[9px] font-bold tracking-widest uppercase text-amber-200 border border-amber-300/30">
+                      VIP Reserve
+                    </div>
                     <div className="absolute top-2 right-2 rounded-full bg-black/50 p-1.5 text-white backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
                       <SlidersHorizontal className="w-3.5 h-3.5" />
                     </div>
@@ -125,7 +128,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
 
                   <button
                     type="button"
-                    className="mt-4 w-full rounded-full bg-[#3D2517] hover:bg-[#2C1810] text-[#FAF7F2] py-2 px-4 text-xs font-semibold shadow transition-colors flex items-center justify-center gap-1.5"
+                    className="mt-4 w-full rounded-full bg-[#3D2517] hover:bg-[#2C1810] text-[#FAF7F2] py-2 px-4 text-xs font-semibold shadow transition-all duration-300 group-hover:shadow-md active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Customize & Order</span>
@@ -166,21 +169,21 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
                 <div
                   key={item.id}
                   onClick={() => onSelectItem(item)}
-                  className="rounded-3xl bg-[#FAF7F2] border border-[#DECDBE] overflow-hidden shadow-sm hover:shadow-xl hover:border-[#8C5332] transition-all duration-300 flex flex-col justify-between cursor-pointer group"
+                  className="rounded-3xl bg-[#FAF7F2] border border-[#DECDBE] hover:border-[#C29B63]/70 overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col justify-between cursor-pointer group"
                 >
                   <div>
                     <div className="relative h-48 w-full bg-[#EFE7DD] overflow-hidden">
                       <img
                         src={item.image}
                         alt={item.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                       />
                       {item.isBestSeller && (
-                        <span className="absolute top-3 left-3 rounded-full bg-amber-500 px-2.5 py-0.5 text-[10px] font-bold text-white shadow">
+                        <span className="absolute top-3 left-3 rounded-full bg-[#2C1810]/90 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-bold text-amber-200 border border-amber-300/40 shadow-md">
                           Best Seller
                         </span>
                       )}
-                      <span className="absolute bottom-3 right-3 rounded-full bg-black/60 backdrop-blur-md px-2.5 py-1 text-xs font-bold text-white">
+                      <span className="absolute bottom-3 right-3 rounded-full bg-black/65 backdrop-blur-md px-2.5 py-1 text-xs font-bold text-white shadow-md">
                         ₱{item.price}
                       </span>
                     </div>
@@ -191,7 +194,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
                           {item.category}
                         </span>
                       </div>
-                      <h4 className="font-serif-cafe text-lg font-bold text-[#2C1810] leading-snug">
+                      <h4 className="font-serif-cafe text-lg font-bold text-[#2C1810] leading-snug group-hover:text-[#8C5332] transition-colors">
                         {item.name}
                       </h4>
                       <p className="text-xs text-[#6F4E37] line-clamp-2 leading-relaxed">
@@ -203,7 +206,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
                   <div className="p-4 pt-0">
                     <button
                       type="button"
-                      className="w-full rounded-full bg-[#EFE7DD] hover:bg-[#3D2517] hover:text-white text-[#3D2517] py-2 px-3 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
+                      className="w-full rounded-full bg-[#EFE7DD] hover:bg-[#3D2517] hover:text-white text-[#3D2517] py-2 px-3 text-xs font-semibold transition-all duration-300 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Customize & Order</span>

@@ -181,7 +181,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setTimeout(() => updateOrderStatus(orderId, 'ready', target.orderType === 'pickup' ? '🎉 Ready for Pick-up!' : '🎉 Serving to Table!', target.orderType === 'pickup' ? `Order ${target.orderNumber} is packed & ready at the pick-up counter!` : `Order ${target.orderNumber} is freshly brewed & being served to ${target.tableNumber || 'your table'}!`), 0);
       } else if (target.status === 'ready') {
         setTimeout(() => {
-          updateOrderStatus(orderId, 'completed', '✨ Order Completed!', `Order ${target.orderNumber} is completed! Enjoy your handcrafted coffee at White Haven!`);
+          updateOrderStatus(orderId, 'completed', '☕ Order Completed!', `Order ${target.orderNumber} is completed! Enjoy your handcrafted coffee at White Haven!`);
           try {
             confetti({
               particleCount: 100,
@@ -433,7 +433,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       updateOrderStatus(
         newOrder.id,
         'completed',
-        '✨ Order Completed!',
+        '☕ Order Completed!',
         `Order ${newOrder.orderNumber} is completed! Thank you for choosing White Haven Café!`
       );
       try {

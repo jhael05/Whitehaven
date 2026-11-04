@@ -51,13 +51,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   );
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#EFE7DD]/95 backdrop-blur-md border-b border-[#D8C7B6] shadow-sm transition-all">
+    <header className="sticky top-0 z-40 w-full bg-[#EFE7DD]/95 backdrop-blur-xl border-b border-[#D8C7B6]/90 shadow-sm transition-all relative">
+      {/* Luxury Gold Hairline Accent */}
+      <div className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#C29B63]/40 to-transparent pointer-events-none" />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Brand Logo matching the screenshots without enclosing border */}
           <button
             onClick={() => onNavigate('home')}
-            className="flex items-center text-left focus:outline-none group cursor-pointer transition-transform hover:opacity-90 active:scale-95"
+            className="flex items-center text-left focus:outline-none group cursor-pointer transition-transform hover:opacity-95 hover:scale-[1.01] active:scale-95"
           >
             <CafeLogo size="md" variant="horizontal" noBorder />
           </button>
@@ -133,7 +136,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <ShoppingBag className="w-4 h-4" />
               <span className="hidden sm:inline">Order</span>
               {totalCount > 0 && (
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-[#2C1810] text-[11px] font-black shadow">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r from-amber-400 to-amber-300 text-[#2C1810] text-[11px] font-black shadow-sm ring-2 ring-[#3D2517] animate-pulse">
                   {totalCount}
                 </span>
               )}

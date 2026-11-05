@@ -21,6 +21,10 @@ interface AuthContextType {
   logout: () => void;
   requestPasswordResetOtp: (emailOrContact: string) => { success: boolean; otp?: string; error?: string };
   resetPasswordWithOtp: (emailOrContact: string, enteredOtp: string, expectedOtp: string, newPassword: string) => AuthResponse;
+  updateUserProfile: (updates: Partial<User>) => AuthResponse;
+  changePassword: (oldPassword: string, newPassword: string) => AuthResponse;
+  saveDefaultAddress: (address: User['defaultAddress']) => void;
+  setUserTheme: (themeId: User['selectedTheme']) => void;
   addLoyaltyStamp: (count?: number) => void;
   setStampsCount: (count: number) => void;
   claimLoyaltyReward: () => boolean;
@@ -31,19 +35,32 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const SESSION_STORAGE_KEY = 'white_haven_user_session_clean';
 const ACCOUNTS_STORAGE_KEY = 'white_haven_registered_accounts_clean';
 
+// Function to remove any legacy Unsplash URLs so all accounts strictly use body icon by default
+const sanitizeAvatar = (url?: string): string | undefined => {
+  if (!url) return undefined;
+  if (url.includes('images.unsplash.com') || url.includes('unsplash.com')) {
+    return undefined;
+  }
+  return url;
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // 1. Registered Accounts Database (Starts strictly empty or from user's actual past registrations)
+  // 1. Registered Accounts Database (Sanitized to ensure no random Unsplash avatars)
   const [registeredAccounts, setRegisteredAccounts] = useState<AccountRecord[]>(() => {
     try {
       const saved = localStorage.getItem(ACCOUNTS_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed)) {
+          return parsed.map((acc: AccountRecord) => ({
+            ...acc,
+            avatarUrl: sanitizeAvatar(acc.avatarUrl),
+          }));
+        }
       }
     } catch {
       // fallback
     }
-    // Absolutely blank - no hardcoded names or mock accounts!
     return [];
   });
 
@@ -51,13 +68,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem(ACCOUNTS_STORAGE_KEY, JSON.stringify(registeredAccounts));
   }, [registeredAccounts]);
 
-  // 2. Active Session (Starts strictly null - no one logged in by default)
+  // 2. Active Session (Sanitized to ensure no random Unsplash avatars)
   const [user, setUser] = useState<User | null>(() => {
     try {
       const saved = localStorage.getItem(SESSION_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && parsed.id && parsed.name && parsed.emailOrContact) return parsed;
+        if (parsed && parsed.id && parsed.name && parsed.emailOrContact) {
+          return {
+            ...parsed,
+            avatarUrl: sanitizeAvatar(parsed.avatarUrl),
+          };
+        }
       }
     } catch {
       // fallback
@@ -115,16 +137,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       id: found.id,
       name: found.name,
       emailOrContact: found.emailOrContact,
+      phoneNumber: found.phoneNumber,
       provider: found.provider,
-      avatarUrl: found.avatarUrl,
+      avatarUrl: sanitizeAvatar(found.avatarUrl),
       stampsCount: found.stampsCount,
+      selectedTheme: found.selectedTheme,
+      defaultAddress: found.defaultAddress,
+      memberSince: found.createdAt,
     };
 
     setUser(activeUser);
     return { success: true, user: activeUser };
   };
 
-  // 2. STRICT SIGN UP (Registers new real account)
+  // 2. STRICT SIGN UP (Registers new real account with clean body icon default)
   const registerAccount = (
     name: string,
     emailOrContact: string,
@@ -155,15 +181,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
     }
 
+    const todayDate = new Date().toISOString().split('T')[0];
     const newAccount: AccountRecord = {
       id: `acc_${Date.now()}`,
       name: trimmedName,
       emailOrContact: emailOrContact.trim(),
       password,
       provider,
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+      avatarUrl: undefined, // Body icon default only! No random pictures.
       stampsCount: 1, // 1 welcome stamp
-      createdAt: new Date().toISOString().split('T')[0],
+      createdAt: todayDate,
     };
 
     setRegisteredAccounts(prev => [newAccount, ...prev]);
@@ -173,8 +200,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       name: newAccount.name,
       emailOrContact: newAccount.emailOrContact,
       provider: newAccount.provider,
-      avatarUrl: newAccount.avatarUrl,
+      avatarUrl: undefined,
       stampsCount: newAccount.stampsCount,
+      memberSince: todayDate,
     };
 
     setUser(activeUser);
@@ -207,26 +235,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: existing.id,
         name: existing.name,
         emailOrContact: existing.emailOrContact,
+        phoneNumber: existing.phoneNumber,
         provider,
-        avatarUrl: existing.avatarUrl,
+        avatarUrl: sanitizeAvatar(existing.avatarUrl),
         stampsCount: existing.stampsCount,
+        selectedTheme: existing.selectedTheme,
+        defaultAddress: existing.defaultAddress,
+        memberSince: existing.createdAt,
       };
       setUser(activeUser);
       return { success: true, user: activeUser };
     }
 
     // Register new real account through social provider
+    const todayDate = new Date().toISOString().split('T')[0];
     const newAccount: AccountRecord = {
       id: `acc_${provider}_${Date.now()}`,
       name: trimmedName,
       emailOrContact: emailOrContact.trim(),
       password: `social_auth_${Date.now()}`,
       provider,
-      avatarUrl: provider === 'google'
-        ? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80'
-        : 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+      avatarUrl: undefined, // Body icon default only! No random pictures.
       stampsCount: 1,
-      createdAt: new Date().toISOString().split('T')[0],
+      createdAt: todayDate,
     };
 
     setRegisteredAccounts(prev => [newAccount, ...prev]);
@@ -236,8 +267,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       name: newAccount.name,
       emailOrContact: newAccount.emailOrContact,
       provider: newAccount.provider,
-      avatarUrl: newAccount.avatarUrl,
+      avatarUrl: undefined,
       stampsCount: newAccount.stampsCount,
+      memberSince: todayDate,
     };
 
     setUser(activeUser);
@@ -339,6 +371,74 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   };
 
+  const updateUserProfile = (updates: Partial<User>): AuthResponse => {
+    if (!user) return { success: false, error: 'You must be logged in to update your profile.' };
+
+    const updatedUser: User = {
+      ...user,
+      ...updates,
+      avatarUrl: updates.avatarUrl !== undefined ? sanitizeAvatar(updates.avatarUrl) : user.avatarUrl,
+    };
+
+    setUser(updatedUser);
+    setRegisteredAccounts(prev =>
+      prev.map(acc => {
+        if (acc.id === user.id) {
+          return {
+            ...acc,
+            name: updatedUser.name,
+            phoneNumber: updatedUser.phoneNumber,
+            avatarUrl: updatedUser.avatarUrl,
+            selectedTheme: updatedUser.selectedTheme,
+            defaultAddress: updatedUser.defaultAddress,
+          };
+        }
+        return acc;
+      })
+    );
+
+    return { success: true, user: updatedUser };
+  };
+
+  const changePassword = (oldPassword: string, newPassword: string): AuthResponse => {
+    if (!user) return { success: false, error: 'You must be logged in to change your password.' };
+
+    const account = registeredAccounts.find(acc => acc.id === user.id);
+    if (!account) return { success: false, error: 'Account record not found.' };
+
+    // For social accounts that don't have user-set passwords, allow setting if oldPassword matches or starts with social_auth
+    const isSocialDefault = account.password.startsWith('social_auth_');
+    if (!isSocialDefault && account.password !== oldPassword) {
+      return { success: false, error: 'Current password is incorrect. Please try again.' };
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      return { success: false, error: 'New password must be at least 6 characters long.' };
+    }
+
+    setRegisteredAccounts(prev =>
+      prev.map(acc => (acc.id === user.id ? { ...acc, password: newPassword } : acc))
+    );
+
+    return { success: true };
+  };
+
+  const saveDefaultAddress = (address: User['defaultAddress']) => {
+    if (!user) return;
+    setUser(prev => (prev ? { ...prev, defaultAddress: address } : null));
+    setRegisteredAccounts(prev =>
+      prev.map(acc => (acc.id === user.id ? { ...acc, defaultAddress: address } : acc))
+    );
+  };
+
+  const setUserTheme = (themeId: User['selectedTheme']) => {
+    if (!user) return;
+    setUser(prev => (prev ? { ...prev, selectedTheme: themeId } : null));
+    setRegisteredAccounts(prev =>
+      prev.map(acc => (acc.id === user.id ? { ...acc, selectedTheme: themeId } : acc))
+    );
+  };
+
   const claimLoyaltyReward = () => {
     if (!user || user.stampsCount < 8) return false;
     setUser(prev => (prev ? { ...prev, stampsCount: 0 } : null));
@@ -360,6 +460,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         requestPasswordResetOtp,
         resetPasswordWithOtp,
+        updateUserProfile,
+        changePassword,
+        saveDefaultAddress,
+        setUserTheme,
         addLoyaltyStamp,
         setStampsCount,
         claimLoyaltyReward,

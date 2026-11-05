@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { CartProvider, useCart } from './context/CartContext';
 import { Navbar } from './components/Navbar';
 import { HomeHero } from './components/HomeHero';
@@ -15,6 +16,7 @@ import { DrinkCustomizerModal } from './components/DrinkCustomizerModal';
 import { CartDrawer } from './components/CartDrawer';
 import { CheckoutModal } from './components/CheckoutModal';
 import { AuthModal } from './components/AuthModal';
+import { MyAccountModal } from './components/MyAccountModal';
 import { OrderTrackerModal } from './components/OrderTrackerModal';
 import { OrdersHistoryModal } from './components/OrdersHistoryModal';
 import { SocialLinksModal } from './components/SocialLinksModal';
@@ -38,6 +40,7 @@ const MainAppContent: React.FC = () => {
     dismissOrderNotification,
   } = useCart();
   const { isAuthenticated, user } = useAuth();
+  const { themeConfig } = useTheme();
 
   // Navigation section
   const [activeSection, setActiveSection] = useState<'home' | 'menu' | 'about'>('home');
@@ -50,6 +53,7 @@ const MainAppContent: React.FC = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isOrdersHistoryOpen, setIsOrdersHistoryOpen] = useState(false);
+  const [isMyAccountOpen, setIsMyAccountOpen] = useState(false);
   const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
 
   const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
@@ -126,7 +130,10 @@ const MainAppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#ECE4D8] selection:bg-[#B38760] selection:text-white">
+    <div
+      className="min-h-screen flex flex-col selection:bg-[#B38760] selection:text-white transition-colors duration-300"
+      style={{ backgroundColor: themeConfig.bgHex }}
+    >
       {/* Top Banner Notice */}
       <div className="bg-[#3D2517] text-[#FAF7F2] py-2 px-4 text-center text-xs font-medium tracking-wide">
         ☕ <span className="font-bold">White Haven Café:</span> Serving artisanal coffee & refreshers in Novaliches, QC. Use code <span className="bg-[#8C5332] text-amber-200 px-1.5 py-0.5 rounded font-mono font-bold">WHITEHAVEN10</span> for 10% off!
@@ -216,7 +223,7 @@ const MainAppContent: React.FC = () => {
         }}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenOrders={() => setIsOrdersHistoryOpen(true)}
-
+        onOpenMyAccount={() => setIsMyAccountOpen(true)}
         activeSection={activeSection}
         onNavigate={handleNavigate}
         onShowToast={showToast}
@@ -368,6 +375,13 @@ const MainAppContent: React.FC = () => {
         onUpdateSocials={handleUpdateSocials}
       />
 
+      {/* My Account Modal (Photo, Stamps, Themes, Saved Address, Security) */}
+      <MyAccountModal
+        isOpen={isMyAccountOpen}
+        onClose={() => setIsMyAccountOpen(false)}
+        onShowToast={showToast}
+        onOpenOrdersHistory={() => setIsOrdersHistoryOpen(true)}
+      />
 
     </div>
   );
@@ -376,9 +390,11 @@ const MainAppContent: React.FC = () => {
 export default function App() {
   return (
     <AuthProvider>
-      <CartProvider>
-        <MainAppContent />
-      </CartProvider>
+      <ThemeProvider>
+        <CartProvider>
+          <MainAppContent />
+        </CartProvider>
+      </ThemeProvider>
     </AuthProvider>
   );
 }

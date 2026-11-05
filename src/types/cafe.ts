@@ -76,23 +76,106 @@ export interface Order {
   statusUpdatedAt: string;
 }
 
+export type CafeThemeId = 'warm-classic' | 'garden-patio' | 'midnight-espresso' | 'vanilla-oat' | 'autumn-cinnamon';
+
+export interface CafeThemeOption {
+  id: CafeThemeId;
+  name: string;
+  tagline: string;
+  bgHex: string;
+  primaryHex: string;
+  accentHex: string;
+  creamHex: string;
+  badge: string;
+}
+
+export const CAFE_THEMES: CafeThemeOption[] = [
+  {
+    id: 'warm-classic',
+    name: 'Haven Classic Warm',
+    tagline: 'Signature artisanal roast, warm sand & caramel gold',
+    bgHex: '#ECE4D8',
+    primaryHex: '#3D2517',
+    accentHex: '#8C5332',
+    creamHex: '#FAF7F2',
+    badge: 'Signature',
+  },
+  {
+    id: 'garden-patio',
+    name: 'Garden Patio Sage',
+    tagline: 'Lush botanical garden lounge, olive pine & soothing matcha',
+    bgHex: '#E6ECE5',
+    primaryHex: '#253827',
+    accentHex: '#415E44',
+    creamHex: '#F6F9F5',
+    badge: 'Outdoor Vibe',
+  },
+  {
+    id: 'midnight-espresso',
+    name: 'Midnight Espresso Bar',
+    tagline: 'Moody evening velvet espresso, obsidian & warm candlelight gold',
+    bgHex: '#1E1612',
+    primaryHex: '#140D09',
+    accentHex: '#D4A373',
+    creamHex: '#291F1A',
+    badge: 'Velvet Roast',
+  },
+  {
+    id: 'vanilla-oat',
+    name: 'Vanilla Oat Cream',
+    tagline: 'Minimalist warm oat milk, toasted hazelnut & soft almond foam',
+    bgHex: '#F4EFEB',
+    primaryHex: '#45362B',
+    accentHex: '#A07855',
+    creamHex: '#FCFAF8',
+    badge: 'Minimalist',
+  },
+  {
+    id: 'autumn-cinnamon',
+    name: 'Autumn Cinnamon Mocha',
+    tagline: 'Rich spiced cinnamon bark, terracotta & roasted chestnut',
+    bgHex: '#EFE4DC',
+    primaryHex: '#4F2314',
+    accentHex: '#9E4A28',
+    creamHex: '#FAF3EE',
+    badge: 'Warm Spiced',
+  },
+];
+
+export interface UserSavedAddress {
+  label: 'Home' | 'Work' | 'Other';
+  houseNumber: string;
+  street: string;
+  barangay: string;
+  city: string;
+  landmark?: string;
+  riderNotes?: string;
+}
+
 export interface User {
   id: string;
   name: string;
   emailOrContact: string;
+  phoneNumber?: string;
   provider: 'google' | 'facebook' | 'instagram' | 'tiktok' | 'email' | 'guest';
-  avatarUrl?: string;
+  avatarUrl?: string; // If undefined or empty, renders clean body/silhouette icon
   stampsCount: number;
+  selectedTheme?: CafeThemeId;
+  defaultAddress?: UserSavedAddress;
+  memberSince?: string;
 }
 
 export interface AccountRecord {
   id: string;
   name: string;
   emailOrContact: string;
+  phoneNumber?: string;
   password: string;
   provider: 'google' | 'facebook' | 'instagram' | 'tiktok' | 'email';
-  avatarUrl?: string;
+  avatarUrl?: string; // If undefined or empty, renders clean body/silhouette icon
   stampsCount: number;
+  selectedTheme?: CafeThemeId;
+  defaultAddress?: UserSavedAddress;
   createdAt: string;
 }
 

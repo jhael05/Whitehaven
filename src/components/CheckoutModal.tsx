@@ -103,14 +103,26 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
   const [contactNumber, setContactNumber] = useState(user?.emailOrContact || '');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('gcash');
 
-  // Delivery address states for doorstep delivery
-  const [houseNumber, setHouseNumber] = useState(contextDeliveryDetails?.houseNumber || '');
-  const [street, setStreet] = useState(contextDeliveryDetails?.street || '');
-  const [barangay, setBarangay] = useState(contextDeliveryDetails?.barangay || 'Novaliches Proper');
+  // Delivery address states for doorstep delivery (pre-filled from user saved address if available)
+  const [houseNumber, setHouseNumber] = useState(
+    contextDeliveryDetails?.houseNumber || user?.defaultAddress?.houseNumber || ''
+  );
+  const [street, setStreet] = useState(
+    contextDeliveryDetails?.street || user?.defaultAddress?.street || ''
+  );
+  const [barangay, setBarangay] = useState(
+    contextDeliveryDetails?.barangay || user?.defaultAddress?.barangay || 'Novaliches Proper'
+  );
   const [customBarangay, setCustomBarangay] = useState('');
-  const [city, setCity] = useState(contextDeliveryDetails?.city || 'Quezon City');
-  const [landmark, setLandmark] = useState(contextDeliveryDetails?.landmark || '');
-  const [riderNotes, setRiderNotes] = useState(contextDeliveryDetails?.riderNotes || '');
+  const [city, setCity] = useState(
+    contextDeliveryDetails?.city || user?.defaultAddress?.city || 'Quezon City'
+  );
+  const [landmark, setLandmark] = useState(
+    contextDeliveryDetails?.landmark || user?.defaultAddress?.landmark || ''
+  );
+  const [riderNotes, setRiderNotes] = useState(
+    contextDeliveryDetails?.riderNotes || user?.defaultAddress?.riderNotes || ''
+  );
 
   // Voucher states in Checkout
   const [voucherInput, setVoucherInput] = useState(promoCode || '');
@@ -457,9 +469,31 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                       </p>
                     </div>
                   </div>
-                  <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full border border-emerald-300">
-                    🛵 ₱49 Local Delivery
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {user?.defaultAddress && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (user.defaultAddress) {
+                            setHouseNumber(user.defaultAddress.houseNumber);
+                            setStreet(user.defaultAddress.street);
+                            setBarangay(user.defaultAddress.barangay);
+                            setCity(user.defaultAddress.city);
+                            setLandmark(user.defaultAddress.landmark || '');
+                            setRiderNotes(user.defaultAddress.riderNotes || '');
+                          }
+                        }}
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-[#8C5332] bg-[#FAF7F2] hover:bg-white px-2.5 py-1 rounded-lg border border-[#DECDBE] cursor-pointer shadow-xs active:scale-95 transition"
+                        title="Click to fill with your saved default address"
+                      >
+                        <MapPin className="w-3 h-3 text-[#8C5332]" />
+                        <span>Use Saved ({user.defaultAddress.label})</span>
+                      </button>
+                    )}
+                    <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full border border-emerald-300">
+                      🛵 ₱49 Local Delivery
+                    </span>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

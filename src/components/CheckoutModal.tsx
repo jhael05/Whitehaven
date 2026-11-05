@@ -631,8 +631,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
               </div>
             )}
 
-            {/* Sub-options depending on Pick-up vs In-Store */}
-            {orderType === 'pickup' ? (
+            {/* Pick-up estimated time option */}
+            {orderType === 'pickup' && (
               <div className="mt-3 rounded-2xl bg-[#F0E6DB] p-4 border border-[#DECDBE]">
                 <label className="flex items-center gap-1.5 text-xs font-semibold text-[#5D4037] mb-1.5">
                   <Clock className="w-3.5 h-3.5" />
@@ -655,7 +655,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                   📍 Pick up at: 22 Midway St., Foresthill Subd., Novaliches, Quezon City
                 </p>
               </div>
-            ) : (
+            )}
+
+            {/* In-Store table & seating area selection (strictly hidden during Delivery and Pick-up) */}
+            {orderType === 'in_store' && (
               <div className="mt-3 rounded-2xl bg-[#F0E6DB] p-4 border border-[#DECDBE] space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>

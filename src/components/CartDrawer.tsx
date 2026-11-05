@@ -28,7 +28,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onClose,
   onProceedToCheckout,
 }) => {
-  const { user, isAuthenticated, setStampsCount } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const {
     items,
     updateQuantity,
@@ -68,12 +68,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const handleClaimReward = () => {
     const res = toggleFreeDrinkClaim(user?.stampsCount || 0);
     setStampNotice(res.message);
-    setTimeout(() => setStampNotice(null), 4000);
-  };
-
-  const handleFill8Stamps = () => {
-    setStampsCount(8);
-    setStampNotice('8/8 Stamps loaded! Tap "Claim 1 Free Drink" below!');
     setTimeout(() => setStampNotice(null), 4000);
   };
 
@@ -319,7 +313,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 {/* Available Voucher Chips */}
                 <div className="mt-2">
                   <span className="block text-[10px] font-bold uppercase tracking-wider text-[#7C6656] mb-1">
-                    Available Vouchers (Tap to apply):
+                    Available New Customer Voucher (Tap to apply):
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {AVAILABLE_VOUCHERS.map(v => (
@@ -327,7 +321,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         key={v.code}
                         type="button"
                         onClick={() => handleApplyPromo(v.code)}
-                        className={`text-[10px] px-2 py-1 rounded-lg border font-mono transition-all cursor-pointer ${
+                        className={`text-[10px] px-2.5 py-1 rounded-lg border font-mono transition-all cursor-pointer ${
                           promoCode === v.code
                             ? 'bg-emerald-100 border-emerald-400 text-emerald-900 font-bold'
                             : 'bg-white border-[#D8C7B6] text-[#8C5332] hover:bg-[#FAF7F2]'
@@ -347,15 +341,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     <Gift className="w-3.5 h-3.5 text-[#8C5332]" />
                     <span>Loyalty Stamps ({user?.stampsCount || 0}/8)</span>
                   </div>
-                  {(user?.stampsCount || 0) < 8 && (
-                    <button
-                      type="button"
-                      onClick={handleFill8Stamps}
-                      className="text-[10px] font-bold text-[#8C5332] underline hover:text-[#5D4037] cursor-pointer"
-                    >
-                      ⚡ Test with 8 Stamps
-                    </button>
-                  )}
                 </div>
 
                 {(user?.stampsCount || 0) >= 8 ? (

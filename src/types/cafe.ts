@@ -107,23 +107,9 @@ export interface VoucherOption {
 export const AVAILABLE_VOUCHERS: VoucherOption[] = [
   {
     code: 'WHITEHAVEN10',
-    title: 'Welcome Haven Treat',
-    description: '10% off your entire order',
+    title: 'New Customer Welcome Voucher',
+    description: '10% off your entire order for new guests',
     discountDisplay: '10% OFF',
     percent: 10,
-  },
-  {
-    code: 'COZYCOFFEE',
-    title: 'Cozy Haven Special',
-    description: '20% off handcrafted coffees and beverages',
-    discountDisplay: '20% OFF',
-    percent: 20,
-  },
-  {
-    code: 'HAVEN20',
-    title: 'Loyal Haven Vibe',
-    description: '20% discount voucher for beloved regular guests',
-    discountDisplay: '20% OFF',
-    percent: 20,
   },
 ];

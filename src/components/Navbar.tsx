@@ -123,7 +123,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 title="View order history"
               >
                 <Clock className="w-4 h-4 text-[#8C5332]" />
-                <span className="hidden sm:inline">Orders</span>
+                <span className="hidden sm:inline">Order History</span>
               </button>
             )}
 
@@ -132,9 +132,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               onClick={onOpenCart}
               className="relative flex items-center gap-2 rounded-full bg-[#3D2517] hover:bg-[#2C1810] text-[#FAF7F2] px-4 py-2 text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer"
+              title="View cart"
             >
               <ShoppingBag className="w-4 h-4" />
-              <span className="hidden sm:inline">Order</span>
+              <span className="hidden sm:inline">Cart</span>
               {totalCount > 0 && (
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r from-amber-400 to-amber-300 text-[#2C1810] text-[11px] font-black shadow-sm ring-2 ring-[#3D2517] animate-pulse">
                   {totalCount}

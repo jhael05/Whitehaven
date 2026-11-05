@@ -96,7 +96,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
     createOrder,
   } = useCart();
 
-  const { user, isAuthenticated, addLoyaltyStamp, claimLoyaltyReward, setStampsCount } = useAuth();
+  const { user, isAuthenticated, addLoyaltyStamp, claimLoyaltyReward } = useAuth();
 
   // Checkout form states
   const [customerName, setCustomerName] = useState(user?.name || '');
@@ -133,12 +133,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
   const handleClaimFreeDrink = () => {
     const res = toggleFreeDrinkClaim(user?.stampsCount || 0);
     setRewardNotice(res.message);
-    setTimeout(() => setRewardNotice(null), 4500);
-  };
-
-  const handleFillDemoStamps = () => {
-    setStampsCount(8);
-    setRewardNotice('8/8 Stamps loaded! You can now tap "Claim 1 Free Drink" below!');
     setTimeout(() => setRewardNotice(null), 4500);
   };
 
@@ -1120,9 +1114,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
               {/* Quick Select Voucher Cards */}
               <div>
                 <span className="block text-[10px] font-bold uppercase tracking-wider text-[#7C6656] mb-1.5">
-                  Available Vouchers (Tap to apply):
+                  Available New Customer Voucher (Tap to apply):
                 </span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 gap-2">
                   {AVAILABLE_VOUCHERS.map((v) => {
                     const isCurrent = promoCode === v.code;
                     return (
@@ -1140,12 +1134,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                           <span className="font-mono text-[11px] font-black text-[#8C5332]">
                             {v.code}
                           </span>
-                          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.2 rounded">
+                          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">
                             {v.discountDisplay}
                           </span>
                         </div>
-                        <p className="text-[10px] text-[#7C6656] mt-0.5 leading-snug truncate">
-                          {v.title}
+                        <p className="text-[10px] text-[#7C6656] mt-0.5 leading-snug">
+                          {v.title} • {v.description}
                         </p>
                       </button>
                     );
@@ -1172,20 +1166,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-black text-[#8C5332] bg-white px-2 py-0.5 rounded-full border border-amber-300 shadow-2xs">
+                  <span className="text-xs font-black text-[#8C5332] bg-white px-2.5 py-0.5 rounded-full border border-amber-300 shadow-2xs">
                     {user?.stampsCount || 0} / 8 Stamps
                   </span>
-                  {/* Quick test helper for immediate review */}
-                  {(user?.stampsCount || 0) < 8 && (
-                    <button
-                      type="button"
-                      onClick={handleFillDemoStamps}
-                      className="text-[10px] font-bold text-[#8C5332] hover:text-[#5D4037] underline cursor-pointer bg-white/70 px-2 py-0.5 rounded"
-                      title="Instantly set stamps to 8 for testing the free drink claim"
-                    >
-                      ⚡ Test with 8 Stamps
-                    </button>
-                  )}
                 </div>
               </div>
 

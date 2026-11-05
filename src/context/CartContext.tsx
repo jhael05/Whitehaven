@@ -365,14 +365,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (clean === 'WHITEHAVEN10' || clean === 'HAVEN10') {
       setPromoCode(clean);
       setDiscountPercent(10);
-      return { success: true, message: '🎉 10% Welcome discount applied!' };
+      return { success: true, message: '🎉 10% New Customer Welcome discount applied!' };
     }
-    if (clean === 'COZYCOFFEE' || clean === 'HAVEN20') {
-      setPromoCode(clean);
-      setDiscountPercent(20);
-      return { success: true, message: '☕ 20% Special Haven discount applied!' };
-    }
-    return { success: false, message: 'Invalid promo code. Try "WHITEHAVEN10" or "COZYCOFFEE".' };
+    return { success: false, message: 'Invalid promo code. Use new customer voucher "WHITEHAVEN10".' };
   };
 
   const removePromoCode = () => {

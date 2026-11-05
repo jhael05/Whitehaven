@@ -2,12 +2,13 @@ import React from 'react';
 import { CAFE_INFO } from '../data/menuData';
 import { CafeLogo } from './CafeLogo';
 import { useCart } from '../context/CartContext';
-import { ShoppingBag, Store, MapPin, ArrowRight, Clock } from 'lucide-react';
+import { ShoppingBag, Store, MapPin, ArrowRight, Clock, Bike } from 'lucide-react';
 
 interface HomeHeroProps {
   onExploreMenu: () => void;
   onOpenPickUp: () => void;
   onOpenInStore: () => void;
+  onOpenDelivery?: () => void;
   onOpenSocialModal: () => void;
   socials?: {
     facebook: string;
@@ -20,11 +21,21 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
   onExploreMenu,
   onOpenPickUp,
   onOpenInStore,
+  onOpenDelivery,
   onOpenSocialModal,
   socials,
 }) => {
   const { setOrderType } = useCart();
   const currentSocials = socials || CAFE_INFO.socials;
+
+  const handleDelivery = () => {
+    setOrderType('delivery');
+    if (onOpenDelivery) {
+      onOpenDelivery();
+    } else {
+      onExploreMenu();
+    }
+  };
 
   const handlePickUp = () => {
     setOrderType('pickup');
@@ -43,13 +54,6 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
       <div className="absolute bottom-10 right-1/4 w-96 h-96 bg-[#8C5332]/20 rounded-full blur-3xl pointer-events-none animate-pulse-warm" style={{ animationDelay: '2.5s' }} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* VIP Luxury Privilège Sub-header */}
-        <div className="flex items-center justify-center gap-3 mb-4 text-[10px] tracking-[0.25em] font-serif uppercase text-[#8C5332] font-semibold opacity-90 text-center">
-          <span className="hidden sm:inline-block w-10 h-[1px] bg-[#8C5332]/40" />
-          <span>White Haven Privilège • Artisanal Roastery & Coffee Bar</span>
-          <span className="hidden sm:inline-block w-10 h-[1px] bg-[#8C5332]/40" />
-        </div>
-
         {/* Main Hero Card Container - matches the aesthetic rounded card in screenshot with VIP depth */}
         <div className="relative rounded-3xl border border-[#D8C7B6] hover:border-[#C29B63]/60 bg-[#E8DCCF]/85 backdrop-blur-md p-6 sm:p-10 lg:p-12 vip-card-shadow transition-all duration-700">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
@@ -74,8 +78,16 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
                 Your cozy neighborhood cafe serving up expertly brewed specialty coffee, refreshing drinks and warm atmosphere. Whether you&apos;re grabbing a quick cup on the go or settling in for a relaxing afternoon, we&apos;re always ready to serve you.
               </p>
 
-              {/* Quick Action Buttons for Ordering: Pick-up vs In-Store */}
+              {/* Quick Action Buttons for Ordering: Delivery, Pick-up, and In-Store */}
               <div className="flex flex-wrap items-center gap-3 pt-2">
+                <button
+                  onClick={handleDelivery}
+                  className="flex items-center gap-2 rounded-full bg-[#8C5332] hover:bg-[#6F3E22] text-[#FAF7F2] px-6 py-3.5 text-sm font-bold shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] active:scale-95 cursor-pointer border border-amber-600/40"
+                >
+                  <Bike className="w-4 h-4 text-amber-300" />
+                  <span>Order for Delivery</span>
+                </button>
+
                 <button
                   onClick={handlePickUp}
                   className="flex items-center gap-2 rounded-full bg-[#3D2517] hover:bg-[#2C1810] text-[#FAF7F2] px-6 py-3.5 text-sm font-bold shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] active:scale-95 cursor-pointer border border-[#6D432A]/50"

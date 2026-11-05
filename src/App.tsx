@@ -226,6 +226,9 @@ const MainAppContent: React.FC = () => {
         {/* Hero Section matching screenshot */}
         <HomeHero
           onExploreMenu={() => handleNavigate('menu')}
+          onOpenDelivery={() => {
+            handleNavigate('menu');
+          }}
           onOpenPickUp={() => {
             handleNavigate('menu');
           }}

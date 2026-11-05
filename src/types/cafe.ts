@@ -32,9 +32,19 @@ export interface CartItem {
   totalPrice: number;
 }
 
-export type OrderType = 'pickup' | 'in_store';
+export type OrderType = 'pickup' | 'in_store' | 'delivery';
 export type PaymentMethod = 'cash' | 'card' | 'gcash' | 'maya';
 export type OrderStatus = 'received' | 'preparing' | 'ready' | 'completed';
+
+export interface DeliveryDetails {
+  houseNumber: string; // e.g. "Unit 4B, 3rd Floor" or "Lot 12 Blk 5"
+  street: string; // e.g. "Midway Street, Foresthill Subdivision"
+  barangay: string; // e.g. "Gulod", "San Bartolome", "Novaliches Proper"
+  city: string; // e.g. "Quezon City", "Caloocan"
+  landmark?: string; // e.g. "Near Midway Gate / Beside 7-Eleven"
+  riderNotes?: string; // e.g. "Please call upon arrival, leave with security"
+  formattedAddress: string;
+}
 
 export interface Order {
   id: string;
@@ -51,6 +61,8 @@ export interface Order {
   contactNumber: string;
   pickupTime?: string;
   tableNumber?: string;
+  deliveryDetails?: DeliveryDetails;
+  deliveryFee?: number;
   specialInstructions?: string;
   paymentMethod: PaymentMethod;
   paymentDetails?: {

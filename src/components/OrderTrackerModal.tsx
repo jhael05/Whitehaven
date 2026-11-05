@@ -1,6 +1,6 @@
 import React from 'react';
 import { Order } from '../types/cafe';
-import { X, CheckCircle2, Clock, Coffee, Printer, Store, ShoppingBag, Award, Gift, Check } from 'lucide-react';
+import { X, CheckCircle2, Clock, Coffee, Printer, Store, ShoppingBag, Award, Gift, Check, Bike, MapPin } from 'lucide-react';
 
 interface OrderTrackerModalProps {
   order: Order | null;
@@ -19,13 +19,31 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
 
   const steps = [
     { key: 'received', title: 'Order Received', desc: 'Queued in the cafe kitchen' },
-    { key: 'preparing', title: 'Brewing & Crafting', desc: 'Barista is handcrafting your drinks' },
+    {
+      key: 'preparing',
+      title: order.orderType === 'delivery' ? 'Brewing & Packing' : 'Brewing & Crafting',
+      desc: order.orderType === 'delivery' ? 'Handcrafted & securely packed with cup carriers' : 'Barista is handcrafting your drinks',
+    },
     {
       key: 'ready',
-      title: order.orderType === 'pickup' ? 'Ready for Pick-up' : 'Serving to Table',
-      desc: order.orderType === 'pickup' ? 'Available at the pick-up counter' : `Barista is heading to ${order.tableNumber || 'your table'}`,
+      title:
+        order.orderType === 'delivery'
+          ? 'Out for Delivery'
+          : order.orderType === 'pickup'
+          ? 'Ready for Pick-up'
+          : 'Serving to Table',
+      desc:
+        order.orderType === 'delivery'
+          ? `Rider is on the way to ${order.deliveryDetails?.street || 'your address'}`
+          : order.orderType === 'pickup'
+          ? 'Available at the pick-up counter'
+          : `Barista is heading to ${order.tableNumber || 'your table'}`,
     },
-    { key: 'completed', title: 'Order Completed', desc: 'Served & ready to enjoy!' },
+    {
+      key: 'completed',
+      title: order.orderType === 'delivery' ? 'Delivered & Enjoy!' : 'Order Completed',
+      desc: order.orderType === 'delivery' ? 'Delivered to your doorstep. Enjoy!' : 'Served & ready to enjoy!',
+    },
   ];
 
   const getStepIndex = (status: Order['status']) => {
@@ -80,9 +98,9 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
               </span>
               <span className="text-[11px] text-[#7C6656]">
                 {order.status === 'received' && 'Step 1/4: Order received and placed in kitchen queue'}
-                {order.status === 'preparing' && 'Step 2/4: Barista is brewing espresso & blending drinks'}
-                {order.status === 'ready' && 'Step 3/4: Freshly prepared & ready for pick-up/table'}
-                {order.status === 'completed' && 'Step 4/4: Successfully completed & served!'}
+                {order.status === 'preparing' && (order.orderType === 'delivery' ? 'Step 2/4: Barista is crafting drinks & packing securely with cup carriers' : 'Step 2/4: Barista is brewing espresso & blending drinks')}
+                {order.status === 'ready' && (order.orderType === 'delivery' ? 'Step 3/4: Rider is en route to your doorstep' : 'Step 3/4: Freshly prepared & ready for collection/table')}
+                {order.status === 'completed' && (order.orderType === 'delivery' ? 'Step 4/4: Successfully delivered to your location!' : 'Step 4/4: Successfully completed & served!')}
               </span>
             </div>
 
@@ -112,13 +130,13 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
               <span className="flex items-center gap-1.5">
                 <span className={`inline-block w-2 h-2 rounded-full ${order.status === 'completed' ? 'bg-emerald-500' : 'bg-[#8C5332] animate-ping'}`} />
                 <span className="font-semibold text-[#3D2517]">
-                  {order.status === 'completed' ? 'Order Completed' : 'Automatic Live Tracking'}
+                  {order.status === 'completed' ? (order.orderType === 'delivery' ? 'Delivered' : 'Order Completed') : 'Automatic Live Tracking'}
                 </span>
               </span>
               <span className="text-[10px] text-[#8C5332] font-semibold">
-                {order.status === 'received' && 'Progressing automatically to Brewing...'}
-                {order.status === 'preparing' && 'Progressing automatically to Serving...'}
-                {order.status === 'ready' && 'Progressing automatically to Complete...'}
+                {order.status === 'received' && (order.orderType === 'delivery' ? 'Progressing automatically to Brewing & Packing...' : 'Progressing automatically to Brewing...')}
+                {order.status === 'preparing' && (order.orderType === 'delivery' ? 'Progressing automatically to Out for Delivery...' : 'Progressing automatically to Serving...')}
+                {order.status === 'ready' && (order.orderType === 'delivery' ? 'Progressing automatically to Delivered...' : 'Progressing automatically to Complete...')}
                 {order.status === 'completed' && 'All 4 stages completed ✓'}
               </span>
             </div>
@@ -147,8 +165,14 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
                 <Check className="w-4 h-4 stroke-[3]" />
               </div>
               <div>
-                <p className="font-bold">Order Fulfilled & Complete!</p>
-                <p className="text-[11px] text-emerald-700">Thank you for dining with White Haven Café Novaliches. Have a wonderful day!</p>
+                <p className="font-bold">
+                  {order.orderType === 'delivery' ? 'Order Delivered to Doorstep!' : 'Order Fulfilled & Complete!'}
+                </p>
+                <p className="text-[11px] text-emerald-700">
+                  {order.orderType === 'delivery'
+                    ? 'Your White Haven order has arrived. Enjoy your specialty drinks!'
+                    : 'Thank you for dining with White Haven Café Novaliches. Have a wonderful day!'}
+                </p>
               </div>
             </div>
           )}
@@ -211,7 +235,12 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
                 Fulfillment Type
               </span>
               <div className="flex items-center gap-1.5 font-bold text-[#2C1810] mt-0.5">
-                {order.orderType === 'pickup' ? (
+                {order.orderType === 'delivery' ? (
+                  <>
+                    <Bike className="w-4 h-4 text-[#8C5332]" />
+                    <span>Doorstep Delivery (30-45m)</span>
+                  </>
+                ) : order.orderType === 'pickup' ? (
                   <>
                     <ShoppingBag className="w-4 h-4 text-[#8C5332]" />
                     <span>Pick-up ({order.pickupTime?.split(' ')[0] || 'ASAP'})</span>
@@ -232,11 +261,39 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
               <div className="font-bold text-[#2C1810] mt-0.5 uppercase">
                 {order.paymentMethod} •{' '}
                 <span className="text-emerald-700">
-                  {order.paymentMethod === 'cash' ? 'Pay upon Pickup' : 'Confirmed'}
+                  {order.paymentMethod === 'cash' ? 'Cash on Hand' : 'Confirmed'}
                 </span>
               </div>
             </div>
           </div>
+
+          {/* Delivery Destination Address Box */}
+          {order.orderType === 'delivery' && order.deliveryDetails && (
+            <div className="rounded-2xl border border-amber-300 bg-amber-50/80 p-3.5 text-xs space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1.5 font-bold text-[#8C5332]">
+                  <MapPin className="w-4 h-4 text-[#8C5332]" />
+                  <span>Delivery Destination</span>
+                </span>
+                <span className="text-[10px] font-bold text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-full">
+                  White Haven Express
+                </span>
+              </div>
+              <p className="font-bold text-[#2C1810] pl-5 leading-snug">
+                {order.deliveryDetails.formattedAddress}
+              </p>
+              {order.deliveryDetails.landmark && (
+                <p className="text-[11px] text-[#5D4037] pl-5">
+                  <strong>Landmark:</strong> {order.deliveryDetails.landmark}
+                </p>
+              )}
+              {order.deliveryDetails.riderNotes && (
+                <p className="text-[11px] text-[#8C5332] pl-5 italic font-medium">
+                  <strong>Rider Notes:</strong> &ldquo;{order.deliveryDetails.riderNotes}&rdquo;
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Loyalty Reward Badge */}
           {order.claimedFreeDrink && (
@@ -284,6 +341,15 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
                 <span>Subtotal</span>
                 <span>₱{order.subtotal}</span>
               </div>
+              {order.orderType === 'delivery' && (
+                <div className="flex justify-between text-[#8C5332] font-semibold">
+                  <span className="flex items-center gap-1">
+                    <Bike className="w-3.5 h-3.5" />
+                    <span>Doorstep Delivery Fee</span>
+                  </span>
+                  <span>₱{order.deliveryFee ?? 49}</span>
+                </div>
+              )}
               {order.discount > 0 && (
                 <div className="flex justify-between text-emerald-700 font-semibold">
                   <span>Voucher Discount</span>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { OrderType, PaymentMethod, AVAILABLE_VOUCHERS } from '../types/cafe';
+import { OrderType, PaymentMethod, AVAILABLE_VOUCHERS, DeliveryDetails } from '../types/cafe';
 import {
   X,
   Check,
@@ -22,6 +22,9 @@ import {
   Gift,
   Ticket,
   CheckCircle2,
+  Bike,
+  MapPin,
+  Navigation,
 } from 'lucide-react';
 import { GCashLogo, MayaLogo, CardsLogo, CashLogo } from './PaymentLogos';
 import { CafeLogo } from './CafeLogo';
@@ -78,6 +81,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
     setPickupTime,
     tableNumber,
     setTableNumber,
+    deliveryFee,
+    deliveryDetails: contextDeliveryDetails,
+    setDeliveryDetails: setContextDeliveryDetails,
     specialInstructions,
     setSpecialInstructions,
     promoCode,
@@ -96,6 +102,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
   const [customerName, setCustomerName] = useState(user?.name || '');
   const [contactNumber, setContactNumber] = useState(user?.emailOrContact || '');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('gcash');
+
+  // Delivery address states for doorstep delivery
+  const [houseNumber, setHouseNumber] = useState(contextDeliveryDetails?.houseNumber || '');
+  const [street, setStreet] = useState(contextDeliveryDetails?.street || '');
+  const [barangay, setBarangay] = useState(contextDeliveryDetails?.barangay || 'Novaliches Proper');
+  const [customBarangay, setCustomBarangay] = useState('');
+  const [city, setCity] = useState(contextDeliveryDetails?.city || 'Quezon City');
+  const [landmark, setLandmark] = useState(contextDeliveryDetails?.landmark || '');
+  const [riderNotes, setRiderNotes] = useState(contextDeliveryDetails?.riderNotes || '');
 
   // Voucher states in Checkout
   const [voucherInput, setVoucherInput] = useState(promoCode || '');
@@ -254,6 +269,35 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
 
     setErrorMessage('');
 
+    let deliveryData: DeliveryDetails | undefined = undefined;
+    if (orderType === 'delivery') {
+      if (!houseNumber.trim()) {
+        setErrorMessage('Please enter your House, Unit, or Building Number for delivery.');
+        return;
+      }
+      if (!street.trim()) {
+        setErrorMessage('Please enter your Street Name and Subdivision / Village.');
+        return;
+      }
+      const resolvedBrgy = barangay === 'Other' ? customBarangay.trim() : barangay.trim();
+      if (!resolvedBrgy) {
+        setErrorMessage('Please specify your Barangay for delivery.');
+        return;
+      }
+
+      const landmarkText = landmark.trim() ? ` (Landmark: ${landmark.trim()})` : '';
+      deliveryData = {
+        houseNumber: houseNumber.trim(),
+        street: street.trim(),
+        barangay: resolvedBrgy,
+        city: city.trim(),
+        landmark: landmark.trim() || undefined,
+        riderNotes: riderNotes.trim() || undefined,
+        formattedAddress: `${houseNumber.trim()}, ${street.trim()}, Brgy. ${resolvedBrgy}, ${city.trim()}${landmarkText}`,
+      };
+      setContextDeliveryDetails(deliveryData);
+    }
+
     let paymentDetails: any = {};
     if (paymentMethod === 'cash') {
       paymentDetails = {
@@ -285,6 +329,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
       paymentMethod,
       loyaltyDiscount,
       claimedFreeDrink: isFreeDrinkClaimed,
+      deliveryDetails: deliveryData,
       paymentDetails,
     });
 
@@ -319,60 +364,244 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
         )}
 
         <form onSubmit={handleSubmitOrder} className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
-          {/* 1. Dining Mode: Pick-up vs In-Store */}
+          {/* 1. Dining Mode: Delivery vs Pick-up vs In-Store */}
           <div>
             <label className="text-xs font-bold uppercase tracking-wider text-[#5D4037]">
               1. Dining Preference
             </label>
-            <div className="mt-2 grid grid-cols-2 gap-3">
+            <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              {/* Delivery Button */}
               <button
                 type="button"
-                onClick={() => setOrderType('pickup')}
-                className={`flex items-center gap-3 rounded-2xl p-4 border text-left transition-all ${
-                  orderType === 'pickup'
-                    ? 'border-[#8C5332] bg-[#F5ECE3] ring-2 ring-[#8C5332]'
+                onClick={() => setOrderType('delivery')}
+                className={`flex items-center gap-2.5 rounded-2xl p-3.5 border text-left transition-all cursor-pointer ${
+                  orderType === 'delivery'
+                    ? 'border-[#8C5332] bg-[#F5ECE3] ring-2 ring-[#8C5332] shadow-sm'
                     : 'border-[#D8C7B6] bg-white hover:bg-[#F9F5F0]'
                 }`}
               >
                 <div
-                  className={`flex h-11 w-11 items-center justify-center rounded-xl ${
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                    orderType === 'delivery'
+                      ? 'bg-[#8C5332] text-white shadow-xs'
+                      : 'bg-[#EFE8DF] text-[#5D4037]'
+                  }`}
+                >
+                  <Bike className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="font-bold text-xs sm:text-sm text-[#2C1810]">Doorstep Delivery</div>
+                  <div className="text-[11px] text-[#7C6656]">30-45 mins • ₱49 fee</div>
+                </div>
+              </button>
+
+              {/* Pick-up Button */}
+              <button
+                type="button"
+                onClick={() => setOrderType('pickup')}
+                className={`flex items-center gap-2.5 rounded-2xl p-3.5 border text-left transition-all cursor-pointer ${
+                  orderType === 'pickup'
+                    ? 'border-[#8C5332] bg-[#F5ECE3] ring-2 ring-[#8C5332] shadow-sm'
+                    : 'border-[#D8C7B6] bg-white hover:bg-[#F9F5F0]'
+                }`}
+              >
+                <div
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
                     orderType === 'pickup'
-                      ? 'bg-[#8C5332] text-white'
+                      ? 'bg-[#8C5332] text-white shadow-xs'
                       : 'bg-[#EFE8DF] text-[#5D4037]'
                   }`}
                 >
                   <ShoppingBag className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="font-bold text-sm text-[#2C1810]">Pick-up Order</div>
-                  <div className="text-xs text-[#7C6656]">Grab & go at cafe counter</div>
+                  <div className="font-bold text-xs sm:text-sm text-[#2C1810]">Pick-up Order</div>
+                  <div className="text-[11px] text-[#7C6656]">Grab & go at cafe</div>
                 </div>
               </button>
 
+              {/* In-Store Button */}
               <button
                 type="button"
                 onClick={() => setOrderType('in_store')}
-                className={`flex items-center gap-3 rounded-2xl p-4 border text-left transition-all ${
+                className={`flex items-center gap-2.5 rounded-2xl p-3.5 border text-left transition-all cursor-pointer ${
                   orderType === 'in_store'
-                    ? 'border-[#8C5332] bg-[#F5ECE3] ring-2 ring-[#8C5332]'
+                    ? 'border-[#8C5332] bg-[#F5ECE3] ring-2 ring-[#8C5332] shadow-sm'
                     : 'border-[#D8C7B6] bg-white hover:bg-[#F9F5F0]'
                 }`}
               >
                 <div
-                  className={`flex h-11 w-11 items-center justify-center rounded-xl ${
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
                     orderType === 'in_store'
-                      ? 'bg-[#8C5332] text-white'
+                      ? 'bg-[#8C5332] text-white shadow-xs'
                       : 'bg-[#EFE8DF] text-[#5D4037]'
                   }`}
                 >
                   <Store className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="font-bold text-sm text-[#2C1810]">In-Store / Dine-in</div>
-                  <div className="text-xs text-[#7C6656]">Served at your cafe table</div>
+                  <div className="font-bold text-xs sm:text-sm text-[#2C1810]">In-Store / Dine-in</div>
+                  <div className="text-[11px] text-[#7C6656]">Served at your table</div>
                 </div>
               </button>
             </div>
+
+            {/* Sub-options: Delivery vs Pick-up vs In-Store */}
+            {orderType === 'delivery' && (
+              <div className="mt-3 rounded-2xl bg-[#F0E6DB] p-4 sm:p-5 border border-[#DECDBE] space-y-3.5">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#DECDBE] pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#8C5332] text-white">
+                      <Bike className="w-4 h-4 text-amber-200" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm text-[#2C1810]">
+                        Delivery Address & Rider Details
+                      </h3>
+                      <p className="text-[11px] text-[#7C6656]">
+                        Delivering directly from White Haven Café Novaliches
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full border border-emerald-300">
+                    🛵 ₱49 Local Delivery
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#4A2E1B] mb-1">
+                      House / Unit / Bldg / Floor Number *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={houseNumber}
+                      onChange={(e) => setHouseNumber(e.target.value)}
+                      placeholder="e.g. Unit 4B, 3rd Floor / Lot 12 Blk 5"
+                      className="w-full rounded-xl border border-[#D0BFB0] bg-white px-3.5 py-2 text-xs text-[#2C1810] focus:outline-none focus:ring-1 focus:ring-[#8C5332]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#4A2E1B] mb-1">
+                      Street Name & Subdivision / Village *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={street}
+                      onChange={(e) => setStreet(e.target.value)}
+                      placeholder="e.g. Midway St., Foresthill Subd. / Jordan Plains"
+                      className="w-full rounded-xl border border-[#D0BFB0] bg-white px-3.5 py-2 text-xs text-[#2C1810] focus:outline-none focus:ring-1 focus:ring-[#8C5332]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#4A2E1B] mb-1">
+                      Barangay *
+                    </label>
+                    <select
+                      value={barangay}
+                      onChange={(e) => setBarangay(e.target.value)}
+                      className="w-full rounded-xl border border-[#D0BFB0] bg-white px-3.5 py-2 text-xs text-[#2C1810] font-medium focus:outline-none focus:ring-1 focus:ring-[#8C5332]"
+                    >
+                      <option value="Novaliches Proper">Novaliches Proper</option>
+                      <option value="Gulod">Gulod</option>
+                      <option value="San Bartolome">San Bartolome</option>
+                      <option value="Nagkaisang Nayon">Nagkaisang Nayon</option>
+                      <option value="Bagbag">Bagbag</option>
+                      <option value="Greater Lagro">Greater Lagro</option>
+                      <option value="Fairview">Fairview</option>
+                      <option value="Santa Monica">Santa Monica</option>
+                      <option value="Kaligayahan">Kaligayahan</option>
+                      <option value="Pasong Putik">Pasong Putik</option>
+                      <option value="Talipapa">Talipapa</option>
+                      <option value="Sauyo">Sauyo</option>
+                      <option value="Santa Lucia">Santa Lucia</option>
+                      <option value="Capri">Capri</option>
+                      <option value="Other">Other Barangay (Specify)</option>
+                    </select>
+
+                    {barangay === 'Other' && (
+                      <input
+                        type="text"
+                        required
+                        value={customBarangay}
+                        onChange={(e) => setCustomBarangay(e.target.value)}
+                        placeholder="Type your Barangay name here..."
+                        className="mt-2 w-full rounded-xl border border-amber-400 bg-amber-50/50 px-3 py-2 text-xs text-[#2C1810] focus:outline-none focus:ring-1 focus:ring-[#8C5332]"
+                      />
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#4A2E1B] mb-1">
+                      City / Municipality *
+                    </label>
+                    <select
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      className="w-full rounded-xl border border-[#D0BFB0] bg-white px-3.5 py-2 text-xs text-[#2C1810] font-medium focus:outline-none focus:ring-1 focus:ring-[#8C5332]"
+                    >
+                      <option value="Quezon City">Quezon City</option>
+                      <option value="Caloocan (North)">Caloocan (North)</option>
+                      <option value="Caloocan (South)">Caloocan (South)</option>
+                      <option value="Valenzuela City">Valenzuela City</option>
+                      <option value="San Jose del Monte">San Jose del Monte</option>
+                      <option value="Manila">Manila</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#4A2E1B] mb-1">
+                      Nearby Landmark / House Description
+                    </label>
+                    <input
+                      type="text"
+                      value={landmark}
+                      onChange={(e) => setLandmark(e.target.value)}
+                      placeholder="e.g. Green gate with black fence, near 7-Eleven"
+                      className="w-full rounded-xl border border-[#D0BFB0] bg-white px-3.5 py-2 text-xs text-[#2C1810] focus:outline-none focus:ring-1 focus:ring-[#8C5332]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#4A2E1B] mb-1">
+                      Delivery Instructions for Rider
+                    </label>
+                    <input
+                      type="text"
+                      value={riderNotes}
+                      onChange={(e) => setRiderNotes(e.target.value)}
+                      placeholder="e.g. Please call upon arrival, leave with guard"
+                      className="w-full rounded-xl border border-[#D0BFB0] bg-white px-3.5 py-2 text-xs text-[#2C1810] focus:outline-none focus:ring-1 focus:ring-[#8C5332]"
+                    />
+                  </div>
+                </div>
+
+                {/* Formatted Real-time Address Preview */}
+                <div className="rounded-xl bg-white p-3 border border-[#D0BFB0] flex items-start gap-2.5">
+                  <MapPin className="w-4 h-4 text-[#8C5332] shrink-0 mt-0.5" />
+                  <div className="text-xs">
+                    <span className="text-[10px] uppercase font-bold text-[#7C6656] block">
+                      Delivery Destination Preview
+                    </span>
+                    <span className="font-semibold text-[#2C1810]">
+                      {houseNumber || street ? (
+                        `${houseNumber ? `${houseNumber}, ` : ''}${street || ''}, Brgy. ${barangay === 'Other' ? (customBarangay || '...') : barangay}, ${city}${landmark ? ` (Landmark: ${landmark})` : ''}`
+                      ) : (
+                        <span className="text-gray-400 italic">Enter house number and street above to preview...</span>
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Sub-options depending on Pick-up vs In-Store */}
             {orderType === 'pickup' ? (
@@ -1077,6 +1306,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                 <span>Subtotal</span>
                 <span>₱{subtotal}</span>
               </div>
+              {orderType === 'delivery' && (
+                <div className="flex justify-between text-[#8C5332] font-semibold">
+                  <span className="flex items-center gap-1.5">
+                    <Bike className="w-3.5 h-3.5" />
+                    <span>Doorstep Delivery Fee</span>
+                  </span>
+                  <span>₱{deliveryFee}</span>
+                </div>
+              )}
               {discount > 0 && (
                 <div className="flex justify-between text-emerald-700 font-semibold">
                   <span>Voucher Discount ({promoCode})</span>

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { MenuItem, Customization, CartItem, OrderType, PaymentMethod, Order, OrderStatus } from '../types/cafe';
+import { MenuItem, Customization, CartItem, OrderType, PaymentMethod, Order, OrderStatus, DeliveryDetails } from '../types/cafe';
 import confetti from 'canvas-confetti';
 
 export interface OrderNotification {
@@ -19,6 +19,9 @@ interface CartContextType {
   setPickupTime: (time: string) => void;
   tableNumber: string;
   setTableNumber: (table: string) => void;
+  deliveryDetails: DeliveryDetails | null;
+  setDeliveryDetails: (details: DeliveryDetails | null) => void;
+  deliveryFee: number;
   specialInstructions: string;
   setSpecialInstructions: (notes: string) => void;
   addToCart: (menuItem: MenuItem, customization: Customization, quantity?: number) => void;
@@ -44,6 +47,7 @@ interface CartContextType {
     paymentMethod: PaymentMethod;
     loyaltyDiscount?: number;
     claimedFreeDrink?: boolean;
+    deliveryDetails?: DeliveryDetails;
     paymentDetails?: {
       cashTendered?: number;
       change?: number;
@@ -87,6 +91,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [orderType, setOrderType] = useState<OrderType>('pickup');
   const [pickupTime, setPickupTime] = useState<string>('As soon as possible (15-20 mins)');
   const [tableNumber, setTableNumber] = useState<string>('Table 4');
+  const [deliveryDetails, setDeliveryDetails] = useState<DeliveryDetails | null>(null);
   const [specialInstructions, setSpecialInstructions] = useState<string>('');
   const [promoCode, setPromoCode] = useState<string>('');
   const [discountPercent, setDiscountPercent] = useState<number>(0);
@@ -176,12 +181,49 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const target = prev.find(o => o.id === orderId);
       if (!target) return prev;
       if (target.status === 'received') {
-        setTimeout(() => updateOrderStatus(orderId, 'preparing', '🔥 Brewing & Crafting', `Order ${target.orderNumber} is now brewing at the espresso bar.`), 0);
+        setTimeout(
+          () =>
+            updateOrderStatus(
+              orderId,
+              'preparing',
+              target.orderType === 'delivery'
+                ? '🔥 Brewing & Packing for Delivery'
+                : '🔥 Brewing & Crafting',
+              target.orderType === 'delivery'
+                ? `Order ${target.orderNumber} is brewing and being safely packed for delivery.`
+                : `Order ${target.orderNumber} is now brewing at the espresso bar.`
+            ),
+          0
+        );
       } else if (target.status === 'preparing') {
-        setTimeout(() => updateOrderStatus(orderId, 'ready', target.orderType === 'pickup' ? '🎉 Ready for Pick-up!' : '🎉 Serving to Table!', target.orderType === 'pickup' ? `Order ${target.orderNumber} is packed & ready at the pick-up counter!` : `Order ${target.orderNumber} is freshly brewed & being served to ${target.tableNumber || 'your table'}!`), 0);
+        setTimeout(
+          () =>
+            updateOrderStatus(
+              orderId,
+              'ready',
+              target.orderType === 'delivery'
+                ? '🛵 Out for Delivery!'
+                : target.orderType === 'pickup'
+                ? '🎉 Ready for Pick-up!'
+                : '🎉 Serving to Table!',
+              target.orderType === 'delivery'
+                ? `Rider is on the way with Order ${target.orderNumber} to ${target.deliveryDetails?.houseNumber || ''} ${target.deliveryDetails?.street || ''} (${target.deliveryDetails?.barangay || 'QC'})!`
+                : target.orderType === 'pickup'
+                ? `Order ${target.orderNumber} is packed & ready at the pick-up counter!`
+                : `Order ${target.orderNumber} is freshly brewed & being served to ${target.tableNumber || 'your table'}!`
+            ),
+          0
+        );
       } else if (target.status === 'ready') {
         setTimeout(() => {
-          updateOrderStatus(orderId, 'completed', '☕ Order Completed!', `Order ${target.orderNumber} is completed! Enjoy your handcrafted coffee at White Haven!`);
+          updateOrderStatus(
+            orderId,
+            'completed',
+            target.orderType === 'delivery' ? '🏠 Delivered & Enjoy!' : '☕ Order Completed!',
+            target.orderType === 'delivery'
+              ? `Order ${target.orderNumber} has been delivered to your doorstep! Enjoy your White Haven drinks!`
+              : `Order ${target.orderNumber} is completed! Enjoy your handcrafted coffee at White Haven!`
+          );
           try {
             confetti({
               particleCount: 100,
@@ -286,11 +328,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsFreeDrinkClaimed(false);
   };
 
+  const deliveryFee = orderType === 'delivery' ? 49 : 0;
   const subtotal = items.reduce((acc, curr) => acc + curr.totalPrice, 0);
   const discount = Math.round((subtotal * discountPercent) / 100);
   const freeDrinkValue = items.length > 0 ? Math.max(...items.map(i => i.unitPrice)) : 0;
   const loyaltyDiscount = isFreeDrinkClaimed ? freeDrinkValue : 0;
-  const total = Math.max(0, subtotal - discount - loyaltyDiscount);
+  const total = Math.max(0, subtotal - discount - loyaltyDiscount + deliveryFee);
   const totalCount = items.reduce((acc, curr) => acc + curr.quantity, 0);
 
   const toggleFreeDrinkClaim = (stampsCount: number) => {
@@ -343,6 +386,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     paymentMethod: PaymentMethod;
     loyaltyDiscount?: number;
     claimedFreeDrink?: boolean;
+    deliveryDetails?: DeliveryDetails;
     paymentDetails?: {
       cashTendered?: number;
       change?: number;
@@ -354,7 +398,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
     const resolvedLoyaltyDiscount = details.loyaltyDiscount !== undefined ? details.loyaltyDiscount : loyaltyDiscount;
     const resolvedClaimedFreeDrink = details.claimedFreeDrink !== undefined ? details.claimedFreeDrink : isFreeDrinkClaimed;
-    const resolvedTotal = Math.max(0, subtotal - discount - resolvedLoyaltyDiscount);
+    const resolvedDeliveryFee = orderType === 'delivery' ? 49 : 0;
+    const resolvedTotal = Math.max(0, subtotal - discount - resolvedLoyaltyDiscount + resolvedDeliveryFee);
 
     const newOrder: Order = {
       id: `order_${Date.now()}`,
@@ -365,12 +410,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       discount,
       loyaltyDiscount: resolvedLoyaltyDiscount,
       claimedFreeDrink: resolvedClaimedFreeDrink,
+      deliveryFee: resolvedDeliveryFee,
       total: resolvedTotal,
       orderType,
       customerName: details.customerName,
       contactNumber: details.contactNumber,
       pickupTime: orderType === 'pickup' ? pickupTime : undefined,
       tableNumber: orderType === 'in_store' ? tableNumber : undefined,
+      deliveryDetails: orderType === 'delivery' ? (details.deliveryDetails || deliveryDetails || undefined) : undefined,
       specialInstructions: specialInstructions || undefined,
       paymentMethod: details.paymentMethod,
       paymentDetails: details.paymentDetails,
@@ -406,35 +453,47 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
     playNotificationChime('received');
 
-    // Stage 2: Brewing & Crafting (4.5 seconds - completely automatic!)
+    // Stage 2: Brewing & Crafting / Packing for Delivery (4.5 seconds - completely automatic!)
     setTimeout(() => {
       updateOrderStatus(
         newOrder.id,
         'preparing',
-        '🔥 Brewing & Crafting',
-        `Order ${newOrder.orderNumber} is now brewing at the espresso bar.`
+        newOrder.orderType === 'delivery'
+          ? '🔥 Brewing & Packing for Delivery'
+          : '🔥 Brewing & Crafting',
+        newOrder.orderType === 'delivery'
+          ? `Order ${newOrder.orderNumber} is brewing and being safely packed for delivery.`
+          : `Order ${newOrder.orderNumber} is now brewing at the espresso bar.`
       );
     }, 4500);
 
-    // Stage 3: Ready for Pick-up or Serving (10 seconds - completely automatic!)
+    // Stage 3: Out for Delivery or Ready for Pick-up / Serving (10 seconds - completely automatic!)
     setTimeout(() => {
       updateOrderStatus(
         newOrder.id,
         'ready',
-        newOrder.orderType === 'pickup' ? '🎉 Ready for Pick-up!' : '🎉 Serving to Table!',
-        newOrder.orderType === 'pickup'
+        newOrder.orderType === 'delivery'
+          ? '🛵 Out for Delivery!'
+          : newOrder.orderType === 'pickup'
+          ? '🎉 Ready for Pick-up!'
+          : '🎉 Serving to Table!',
+        newOrder.orderType === 'delivery'
+          ? `Rider is on the way with Order ${newOrder.orderNumber} heading to ${newOrder.deliveryDetails?.houseNumber || ''} ${newOrder.deliveryDetails?.street || ''} (${newOrder.deliveryDetails?.barangay || 'QC'})!`
+          : newOrder.orderType === 'pickup'
           ? `Order ${newOrder.orderNumber} is ready at the counter for collection.`
           : `Order ${newOrder.orderNumber} is ready and heading to ${newOrder.tableNumber || 'your table'}!`
       );
     }, 10000);
 
-    // Stage 4: Order Completed (16 seconds - reaches all 4 stages automatically!)
+    // Stage 4: Order Completed / Delivered (16 seconds - reaches all 4 stages automatically!)
     setTimeout(() => {
       updateOrderStatus(
         newOrder.id,
         'completed',
-        '☕ Order Completed!',
-        `Order ${newOrder.orderNumber} is completed! Thank you for choosing White Haven Café!`
+        newOrder.orderType === 'delivery' ? '🏠 Delivered & Enjoy!' : '☕ Order Completed!',
+        newOrder.orderType === 'delivery'
+          ? `Order ${newOrder.orderNumber} has been delivered to your doorstep! Enjoy your White Haven drinks!`
+          : `Order ${newOrder.orderNumber} is completed! Thank you for choosing White Haven Café!`
       );
       try {
         confetti({
@@ -467,6 +526,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setPickupTime,
         tableNumber,
         setTableNumber,
+        deliveryDetails,
+        setDeliveryDetails,
+        deliveryFee,
         specialInstructions,
         setSpecialInstructions,
         addToCart,

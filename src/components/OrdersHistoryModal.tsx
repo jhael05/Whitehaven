@@ -61,7 +61,7 @@ export const OrdersHistoryModal: React.FC<OrdersHistoryModalProps> = ({
                         {ord.orderNumber}
                       </span>
                       <span className="rounded-full bg-[#F5ECE2] text-[#8C5332] px-2 py-0.5 text-[11px] font-semibold">
-                        {ord.orderType === 'pickup' ? 'Pick-up' : 'In-Store'}
+                        {ord.orderType === 'delivery' ? '🛵 Delivery' : ord.orderType === 'pickup' ? '🛍️ Pick-up' : '☕ In-Store'}
                       </span>
                     </div>
                     <span className="text-[11px] text-[#7C6656]">Placed at {ord.createdAt}</span>

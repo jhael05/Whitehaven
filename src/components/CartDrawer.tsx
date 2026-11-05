@@ -42,6 +42,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     removePromoCode,
     orderType,
     setOrderType,
+    deliveryFee,
     isFreeDrinkClaimed,
     toggleFreeDrinkClaim,
     freeDrinkValue,
@@ -104,12 +105,23 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           </div>
 
           {/* Dining Type Switcher Bar */}
-          <div className="p-4 bg-[#F5ECE2] border-b border-[#DECDBE]">
-            <div className="grid grid-cols-2 p-1 bg-white/70 rounded-xl border border-[#DECDBE]">
+          <div className="p-3.5 bg-[#F5ECE2] border-b border-[#DECDBE]">
+            <div className="grid grid-cols-3 p-1 bg-white/70 rounded-xl border border-[#DECDBE] gap-1">
+              <button
+                type="button"
+                onClick={() => setOrderType('delivery')}
+                className={`py-1.5 px-2 text-xs font-bold rounded-lg transition-all text-center ${
+                  orderType === 'delivery'
+                    ? 'bg-[#8C5332] text-white shadow-sm'
+                    : 'text-[#5D4037] hover:text-black'
+                }`}
+              >
+                🛵 Delivery
+              </button>
               <button
                 type="button"
                 onClick={() => setOrderType('pickup')}
-                className={`py-2 text-xs font-bold rounded-lg transition-all ${
+                className={`py-1.5 px-2 text-xs font-bold rounded-lg transition-all text-center ${
                   orderType === 'pickup'
                     ? 'bg-[#3D2517] text-white shadow-sm'
                     : 'text-[#5D4037] hover:text-black'
@@ -120,15 +132,20 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               <button
                 type="button"
                 onClick={() => setOrderType('in_store')}
-                className={`py-2 text-xs font-bold rounded-lg transition-all ${
+                className={`py-1.5 px-2 text-xs font-bold rounded-lg transition-all text-center ${
                   orderType === 'in_store'
                     ? 'bg-[#3D2517] text-white shadow-sm'
                     : 'text-[#5D4037] hover:text-black'
                 }`}
               >
-                ☕ In-Store / Dine-in
+                ☕ Dine-in
               </button>
             </div>
+            {orderType === 'delivery' && (
+              <p className="mt-1.5 text-[11px] text-[#8C5332] text-center font-medium">
+                🛵 Doorstep Delivery • ₱49 flat rate in Novaliches / QC
+              </p>
+            )}
           </div>
 
           {/* Cart Items List */}
@@ -391,6 +408,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <span>Subtotal</span>
                   <span>₱{subtotal}</span>
                 </div>
+                {orderType === 'delivery' && (
+                  <div className="flex justify-between text-[#8C5332] font-semibold">
+                    <span>🛵 Delivery Fee</span>
+                    <span>₱{deliveryFee}</span>
+                  </div>
+                )}
                 {discount > 0 && (
                   <div className="flex justify-between text-emerald-700 font-semibold">
                     <span>Voucher ({promoCode})</span>

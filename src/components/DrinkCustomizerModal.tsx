@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { MenuItem, Customization } from '../types/cafe';
 import { useCart } from '../context/CartContext';
-import { X, Plus, Minus, Flame, Check } from 'lucide-react';
+import { X, Plus, Minus, Flame, Check, Sparkles, Utensils, Coffee } from 'lucide-react';
 
 interface DrinkCustomizerModalProps {
   item: MenuItem | null;
@@ -18,12 +18,20 @@ const MILK_OPTIONS: Customization['milkType'][] = [
   'Soy Milk (+₱20)',
 ];
 
-const AVAILABLE_ADDONS = [
-  { label: 'Extra Espresso Shot (+₱30)', price: 30 },
-  { label: 'Coffee Jelly (+₱20)', price: 20 },
-  { label: 'Vanilla Syrup (+₱20)', price: 20 },
-  { label: 'Caramel Drizzle (+₱20)', price: 20 },
-  { label: 'Whipped Cream (+₱25)', price: 25 },
+// Official White Haven Cafe Add-ons from Menu Board
+const DRINK_ADDONS = [
+  { label: 'Nata (+₱25)', price: 25 },
+  { label: 'Coffee Jelly (+₱30)', price: 30 },
+  { label: 'Espresso Shot (+₱65)', price: 65 },
+  { label: 'Whipped Cream (+₱30)', price: 30 },
+  { label: 'Rock Salt Cheese Foam (+₱30)', price: 30 },
+  { label: 'Creamcheese (+₱30)', price: 30 },
+];
+
+const FOOD_ADDONS = [
+  { label: 'Fried Egg (+₱25)', price: 25 },
+  { label: 'Toast Bread (+₱15)', price: 15 },
+  { label: 'Cheese Sauce (+₱25)', price: 25 },
 ];
 
 export const DrinkCustomizerModal: React.FC<DrinkCustomizerModalProps> = ({
@@ -33,9 +41,15 @@ export const DrinkCustomizerModal: React.FC<DrinkCustomizerModalProps> = ({
 }) => {
   const { addToCart } = useCart();
 
+  const isFood = item?.category === 'Rice Meals & Sandwich' || item?.category === 'Pasta & Snacks';
+  const isBlended = item?.category === 'Blended Frappes';
+  const isSodaOrSlushie = item?.category === 'Soda & Slushies';
+
   const [quantity, setQuantity] = useState(1);
   const [temperature, setTemperature] = useState<'Iced' | 'Hot'>('Iced');
-  const [size, setSize] = useState<'Regular (16oz)' | 'Grande (22oz) (+₱25)'>('Regular (16oz)');
+  const [size, setSize] = useState<'Regular (16oz)' | 'Grande (22oz) (+₱25)'>(
+    isBlended ? 'Grande (22oz) (+₱25)' : 'Regular (16oz)'
+  );
   const [sweetness, setSweetness] = useState<Customization['sweetness']>('50%');
   const [iceLevel, setIceLevel] = useState<Customization['iceLevel']>('Regular Ice');
   const [milkType, setMilkType] = useState<Customization['milkType']>('Whole Milk');
@@ -46,13 +60,15 @@ export const DrinkCustomizerModal: React.FC<DrinkCustomizerModalProps> = ({
 
   // Calculate live item unit price
   let unitPrice = item.price;
-  if (size.includes('+₱25')) unitPrice += 25;
-  if (milkType.includes('+₱30')) unitPrice += 30;
-  if (milkType.includes('+₱20')) unitPrice += 20;
-  selectedAddOns.forEach(addon => {
-    if (addon.includes('+₱30')) unitPrice += 30;
-    else if (addon.includes('+₱25')) unitPrice += 25;
-    else if (addon.includes('+₱20')) unitPrice += 20;
+  if (!isBlended && size.includes('+₱25')) unitPrice += 25;
+  if (!isFood && milkType.includes('+₱30')) unitPrice += 30;
+  if (!isFood && milkType.includes('+₱20')) unitPrice += 20;
+
+  selectedAddOns.forEach(addonLabel => {
+    const match = addonLabel.match(/\+₱(\d+)/);
+    if (match) {
+      unitPrice += parseInt(match[1], 10);
+    }
   });
 
   const totalPrice = unitPrice * quantity;
@@ -67,11 +83,11 @@ export const DrinkCustomizerModal: React.FC<DrinkCustomizerModalProps> = ({
 
   const handleAddToCart = () => {
     const customization: Customization = {
-      temperature,
-      size,
-      sweetness,
-      iceLevel: temperature === 'Hot' ? 'No Ice' : iceLevel,
-      milkType,
+      temperature: isFood ? 'Hot' : temperature,
+      size: isFood ? 'Regular (16oz)' : size,
+      sweetness: isFood ? '100%' : sweetness,
+      iceLevel: isFood || temperature === 'Hot' ? 'No Ice' : iceLevel,
+      milkType: isFood ? 'Whole Milk' : milkType,
       addOns: selectedAddOns,
       notes: notes.trim(),
     };
@@ -83,32 +99,35 @@ export const DrinkCustomizerModal: React.FC<DrinkCustomizerModalProps> = ({
     setNotes('');
   };
 
+  const availableAddonsList = isFood ? FOOD_ADDONS : DRINK_ADDONS;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-xl my-8 rounded-3xl bg-[#FAF7F2] shadow-2xl border border-[#E0D5C7] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto animate-fade-in">
+      <div className="relative w-full max-w-xl my-8 rounded-3xl bg-[#FAF7F2] shadow-2xl border border-[#DECDBE] overflow-hidden">
         {/* Top Header with Image & Title */}
-        <div className="relative h-56 w-full bg-[#E8DCCF] overflow-hidden">
+        <div className="relative h-60 w-full bg-[#E8DCCF] overflow-hidden">
           <img
             src={item.image}
             alt={item.name}
             className="w-full h-full object-cover object-center brightness-95"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
           
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 rounded-full bg-black/40 p-2 text-white hover:bg-black/60 transition-colors backdrop-blur-md"
+            className="absolute top-4 right-4 rounded-full bg-black/50 p-2 text-white hover:bg-black/75 transition-colors backdrop-blur-md cursor-pointer"
+            title="Close"
           >
             <X className="w-5 h-5" />
           </button>
 
-          <div className="absolute bottom-4 left-6 right-6 text-white">
+          <div className="absolute bottom-4 left-6 right-6">
             <div className="flex items-center gap-2">
-              <span className="rounded-full bg-[#8C5332] px-3 py-0.5 text-xs font-semibold uppercase tracking-wider text-[#FAF7F2]">
+              <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-amber-400 text-[#2C1810]">
                 {item.category}
               </span>
               {item.isBestSeller && (
-                <span className="flex items-center gap-1 rounded-full bg-amber-500/90 px-2.5 py-0.5 text-xs font-semibold text-white">
+                <span className="flex items-center gap-1 rounded-full bg-amber-600/90 px-2.5 py-0.5 text-xs font-semibold text-white">
                   <Flame className="w-3 h-3 text-amber-200" /> Best Seller
                 </span>
               )}
@@ -116,7 +135,7 @@ export const DrinkCustomizerModal: React.FC<DrinkCustomizerModalProps> = ({
             <h2 className="mt-1 font-serif-cafe text-2xl font-bold tracking-tight text-white">
               {item.name}
             </h2>
-            <p className="mt-0.5 text-xs text-white/85 line-clamp-2">
+            <p className="mt-0.5 text-xs text-white/90 line-clamp-2">
               {item.description}
             </p>
           </div>
@@ -124,69 +143,81 @@ export const DrinkCustomizerModal: React.FC<DrinkCustomizerModalProps> = ({
 
         {/* Scrollable Customization Controls */}
         <div className="max-h-[55vh] overflow-y-auto p-6 space-y-6">
-          {item.canCustomize !== false ? (
+          {!isFood ? (
             <>
-              {/* 1. Temperature: Hot or Iced */}
-              <div>
-                <label className="text-xs font-bold tracking-wider uppercase text-[#5D4037]">
-                  1. Temperature
-                </label>
-                <div className="mt-2 grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setTemperature('Iced')}
-                    className={`flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all border ${
-                      temperature === 'Iced'
-                        ? 'bg-[#3D2517] text-white border-[#3D2517] shadow-sm'
-                        : 'bg-[#EFE8DF] text-[#4A2E1B] border-[#D8C7B6] hover:bg-[#E5DBCF]'
-                    }`}
-                  >
-                    <span>🧊 Iced</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTemperature('Hot')}
-                    className={`flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all border ${
-                      temperature === 'Hot'
-                        ? 'bg-[#3D2517] text-white border-[#3D2517] shadow-sm'
-                        : 'bg-[#EFE8DF] text-[#4A2E1B] border-[#D8C7B6] hover:bg-[#E5DBCF]'
-                    }`}
-                  >
-                    <span>☕ Hot</span>
-                  </button>
+              {/* 1. Temperature: Hot or Iced (Only if not Blended and not Soda/Slushie) */}
+              {!isBlended && !isSodaOrSlushie && (
+                <div>
+                  <label className="text-xs font-bold tracking-wider uppercase text-[#5D4037] flex items-center gap-1.5">
+                    <Coffee className="w-3.5 h-3.5 text-[#8C5332]" />
+                    <span>1. Temperature</span>
+                  </label>
+                  <div className="mt-2 grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setTemperature('Iced')}
+                      className={`flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all border cursor-pointer ${
+                        temperature === 'Iced'
+                          ? 'bg-[#3D2517] text-white border-[#3D2517] shadow-sm'
+                          : 'bg-[#EFE8DF] text-[#4A2E1B] border-[#D8C7B6] hover:bg-[#E5DBCF]'
+                      }`}
+                    >
+                      <span>🧊 Iced</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTemperature('Hot')}
+                      className={`flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all border cursor-pointer ${
+                        temperature === 'Hot'
+                          ? 'bg-[#3D2517] text-white border-[#3D2517] shadow-sm'
+                          : 'bg-[#EFE8DF] text-[#4A2E1B] border-[#D8C7B6] hover:bg-[#E5DBCF]'
+                      }`}
+                    >
+                      <span>☕ Hot</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* 2. Cup Size */}
+              {/* 2. Cup Size (Blended is 22oz by default; Coffee/Non-Coffee default 16oz with 22oz upgrade) */}
               <div>
                 <label className="text-xs font-bold tracking-wider uppercase text-[#5D4037]">
-                  2. Cup Size
+                  {isBlended ? 'Cup Size (Signature Frappe)' : 'Cup Size'}
                 </label>
                 <div className="mt-2 grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setSize('Regular (16oz)')}
-                    className={`flex flex-col items-center justify-center rounded-xl py-2.5 px-3 border transition-all ${
-                      size === 'Regular (16oz)'
-                        ? 'bg-[#3D2517] text-white border-[#3D2517]'
-                        : 'bg-[#EFE8DF] text-[#4A2E1B] border-[#D8C7B6] hover:bg-[#E5DBCF]'
-                    }`}
-                  >
-                    <span className="text-sm font-semibold">Regular (16oz)</span>
-                    <span className="text-xs opacity-75">Base Price</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSize('Grande (22oz) (+₱25)')}
-                    className={`flex flex-col items-center justify-center rounded-xl py-2.5 px-3 border transition-all ${
-                      size === 'Grande (22oz) (+₱25)'
-                        ? 'bg-[#3D2517] text-white border-[#3D2517]'
-                        : 'bg-[#EFE8DF] text-[#4A2E1B] border-[#D8C7B6] hover:bg-[#E5DBCF]'
-                    }`}
-                  >
-                    <span className="text-sm font-semibold">Grande (22oz)</span>
-                    <span className="text-xs text-[#8C5332] font-semibold">+₱25</span>
-                  </button>
+                  {isBlended ? (
+                    <div className="col-span-2 p-3 rounded-xl bg-[#FAF0E6] border border-[#8C5332] text-xs font-bold text-[#3D2517] flex items-center justify-between">
+                      <span>Grande (22oz Blended Cup)</span>
+                      <span className="text-[#8C5332]">Included</span>
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setSize('Regular (16oz)')}
+                        className={`flex flex-col items-center justify-center rounded-xl py-2.5 px-3 border transition-all cursor-pointer ${
+                          size === 'Regular (16oz)'
+                            ? 'bg-[#3D2517] text-white border-[#3D2517]'
+                            : 'bg-[#EFE8DF] text-[#4A2E1B] border-[#D8C7B6] hover:bg-[#E5DBCF]'
+                        }`}
+                      >
+                        <span className="text-sm font-semibold">Regular (16oz)</span>
+                        <span className="text-xs opacity-75">Base Price</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSize('Grande (22oz) (+₱25)')}
+                        className={`flex flex-col items-center justify-center rounded-xl py-2.5 px-3 border transition-all cursor-pointer ${
+                          size === 'Grande (22oz) (+₱25)'
+                            ? 'bg-[#3D2517] text-white border-[#3D2517]'
+                            : 'bg-[#EFE8DF] text-[#4A2E1B] border-[#D8C7B6] hover:bg-[#E5DBCF]'
+                        }`}
+                      >
+                        <span className="text-sm font-semibold">Grande (22oz)</span>
+                        <span className="text-xs text-amber-300 font-bold">+₱25</span>
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -194,7 +225,7 @@ export const DrinkCustomizerModal: React.FC<DrinkCustomizerModalProps> = ({
               <div>
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold tracking-wider uppercase text-[#5D4037]">
-                    3. Sweetness Level
+                    Sweetness Level
                   </label>
                   <span className="text-xs font-bold text-[#8C5332]">{sweetness}</span>
                 </div>
@@ -204,7 +235,7 @@ export const DrinkCustomizerModal: React.FC<DrinkCustomizerModalProps> = ({
                       key={opt}
                       type="button"
                       onClick={() => setSweetness(opt)}
-                      className={`rounded-lg py-2 text-xs font-semibold transition-all border ${
+                      className={`rounded-lg py-2 text-xs font-semibold transition-all border cursor-pointer ${
                         sweetness === opt
                           ? 'bg-[#8C5332] text-white border-[#8C5332]'
                           : 'bg-[#EFE8DF] text-[#4A2E1B] border-[#D8C7B6] hover:bg-[#E5DBCF]'
@@ -216,12 +247,12 @@ export const DrinkCustomizerModal: React.FC<DrinkCustomizerModalProps> = ({
                 </div>
               </div>
 
-              {/* 4. Ice Level (if iced) */}
-              {temperature === 'Iced' && (
+              {/* 4. Ice Level (if iced and not slushie/blended) */}
+              {!isSodaOrSlushie && !isBlended && temperature === 'Iced' && (
                 <div>
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold tracking-wider uppercase text-[#5D4037]">
-                      4. Ice Level
+                      Ice Level
                     </label>
                     <span className="text-xs font-bold text-[#8C5332]">{iceLevel}</span>
                   </div>
@@ -231,7 +262,7 @@ export const DrinkCustomizerModal: React.FC<DrinkCustomizerModalProps> = ({
                         key={opt}
                         type="button"
                         onClick={() => setIceLevel(opt)}
-                        className={`rounded-lg py-2 text-xs font-semibold transition-all border ${
+                        className={`rounded-lg py-2 text-xs font-semibold transition-all border cursor-pointer ${
                           iceLevel === opt
                             ? 'bg-[#8C5332] text-white border-[#8C5332]'
                             : 'bg-[#EFE8DF] text-[#4A2E1B] border-[#D8C7B6] hover:bg-[#E5DBCF]'
@@ -244,77 +275,84 @@ export const DrinkCustomizerModal: React.FC<DrinkCustomizerModalProps> = ({
                 </div>
               )}
 
-              {/* 5. Milk Selection */}
-              <div>
-                <label className="text-xs font-bold tracking-wider uppercase text-[#5D4037]">
-                  5. Choice of Milk
-                </label>
-                <div className="mt-2 grid grid-cols-2 gap-2">
-                  {MILK_OPTIONS.map(opt => (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => setMilkType(opt)}
-                      className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-xs font-semibold transition-all border text-left ${
-                        milkType === opt
-                          ? 'bg-[#3D2517] text-white border-[#3D2517]'
-                          : 'bg-[#EFE8DF] text-[#4A2E1B] border-[#D8C7B6] hover:bg-[#E5DBCF]'
-                      }`}
-                    >
-                      <span>{opt.split(' (')[0]}</span>
-                      {opt.includes('+') && (
-                        <span className="text-[11px] opacity-80">
-                          +{opt.split('+')[1].replace(')', '')}
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 6. Custom Add-ons */}
-              <div>
-                <label className="text-xs font-bold tracking-wider uppercase text-[#5D4037]">
-                  6. Extra Add-ons (Optional)
-                </label>
-                <div className="mt-2 space-y-2">
-                  {AVAILABLE_ADDONS.map(addon => {
-                    const isChecked = selectedAddOns.includes(addon.label);
-                    return (
+              {/* 5. Milk Selection (Coffee & Non-coffee) */}
+              {(item.category === 'Coffee' || item.category === 'Non-Coffee') && (
+                <div>
+                  <label className="text-xs font-bold tracking-wider uppercase text-[#5D4037]">
+                    Choice of Milk
+                  </label>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    {MILK_OPTIONS.map(opt => (
                       <button
-                        key={addon.label}
+                        key={opt}
                         type="button"
-                        onClick={() => toggleAddon(addon.label)}
-                        className={`flex w-full items-center justify-between rounded-xl p-3 text-xs font-semibold transition-all border ${
-                          isChecked
-                            ? 'bg-[#FAF0E6] text-[#3D2517] border-[#8C5332]'
+                        onClick={() => setMilkType(opt)}
+                        className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-xs font-semibold transition-all border text-left cursor-pointer ${
+                          milkType === opt
+                            ? 'bg-[#3D2517] text-white border-[#3D2517]'
                             : 'bg-[#EFE8DF] text-[#4A2E1B] border-[#D8C7B6] hover:bg-[#E5DBCF]'
                         }`}
                       >
-                        <div className="flex items-center gap-2.5">
-                          <div
-                            className={`flex h-4 w-4 items-center justify-center rounded border ${
-                              isChecked
-                                ? 'bg-[#8C5332] border-[#8C5332] text-white'
-                                : 'border-[#9E8B7A] bg-white'
-                            }`}
-                          >
-                            {isChecked && <Check className="h-3 w-3" />}
-                          </div>
-                          <span>{addon.label.split(' (+')[0]}</span>
-                        </div>
-                        <span className="text-[#8C5332] font-bold">+₱{addon.price}</span>
+                        <span>{opt.split(' (')[0]}</span>
+                        {opt.includes('+') && (
+                          <span className="text-[11px] opacity-80">
+                            +{opt.split('+')[1].replace(')', '')}
+                          </span>
+                        )}
                       </button>
-                    );
-                  })}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </>
           ) : (
-            <div className="rounded-xl bg-[#EFE8DF] p-4 text-center text-xs text-[#5D4037]">
-              This baked delicacy is prepared fresh daily and served warm with butter or dipping syrup.
+            /* Food Specific Info */
+            <div className="rounded-2xl bg-[#F4ECE3] p-4 border border-[#DECDBE] flex items-center gap-3">
+              <Utensils className="w-5 h-5 text-[#8C5332] shrink-0" />
+              <p className="text-xs text-[#5D4037]">
+                Freshly cooked to order with premium ingredients and authentic White Haven recipe.
+              </p>
             </div>
           )}
+
+          {/* Add-ons List from Official Menu */}
+          <div>
+            <label className="text-xs font-bold tracking-wider uppercase text-[#5D4037] flex items-center justify-between">
+              <span>{isFood ? 'Extra Add-ons / Sides' : 'Drink Add-ons (Optional)'}</span>
+              <span className="text-[10px] text-[#7C6656] font-normal">Official Cafe Add-ons</span>
+            </label>
+            <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {availableAddonsList.map(addon => {
+                const isChecked = selectedAddOns.includes(addon.label);
+                return (
+                  <button
+                    key={addon.label}
+                    type="button"
+                    onClick={() => toggleAddon(addon.label)}
+                    className={`flex items-center justify-between rounded-xl p-3 text-xs font-semibold transition-all border cursor-pointer ${
+                      isChecked
+                        ? 'bg-[#FAF0E6] text-[#3D2517] border-[#8C5332] ring-1 ring-[#8C5332]'
+                        : 'bg-[#EFE8DF] text-[#4A2E1B] border-[#D8C7B6] hover:bg-[#E5DBCF]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className={`flex h-4 w-4 items-center justify-center rounded border ${
+                          isChecked
+                            ? 'bg-[#8C5332] border-[#8C5332] text-white'
+                            : 'border-[#9E8B7A] bg-white'
+                        }`}
+                      >
+                        {isChecked && <Check className="h-3 w-3" />}
+                      </div>
+                      <span>{addon.label.split(' (+')[0]}</span>
+                    </div>
+                    <span className="text-[#8C5332] font-bold">+₱{addon.price}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           {/* Special Instructions Note */}
           <div>
@@ -325,19 +363,19 @@ export const DrinkCustomizerModal: React.FC<DrinkCustomizerModalProps> = ({
               rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. Please make extra hot, or pack milk separately..."
-              className="mt-1.5 w-full rounded-xl border border-[#D8C7B6] bg-white p-3 text-xs text-[#2C1810] placeholder-[#A8988B] focus:border-[#5D4037] focus:outline-none focus:ring-1 focus:ring-[#5D4037]"
+              placeholder={isFood ? "e.g. Extra toasted, sauce on the side, egg well done..." : "e.g. Please make extra hot, or pack milk separately..."}
+              className="mt-1.5 w-full rounded-xl border border-[#D8C7B6] bg-white p-3 text-xs text-[#2C1810] placeholder-[#A8988B] focus:border-[#8C5332] focus:outline-none focus:ring-1 focus:ring-[#8C5332]"
             />
           </div>
         </div>
 
         {/* Footer with Quantity & Add to Cart button */}
-        <div className="border-t border-[#E0D5C7] bg-[#EFE8DF] px-6 py-4 flex items-center justify-between gap-4">
+        <div className="border-t border-[#DECDBE] bg-[#EFE8DF] px-6 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center rounded-full bg-white border border-[#D8C7B6] p-1 shadow-sm">
             <button
               type="button"
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="h-8 w-8 rounded-full flex items-center justify-center text-[#5D4037] hover:bg-[#FAF7F2] transition-colors"
+              className="h-8 w-8 rounded-full flex items-center justify-center text-[#5D4037] hover:bg-[#FAF7F2] transition-colors cursor-pointer"
             >
               <Minus className="w-4 h-4" />
             </button>
@@ -347,7 +385,7 @@ export const DrinkCustomizerModal: React.FC<DrinkCustomizerModalProps> = ({
             <button
               type="button"
               onClick={() => setQuantity(quantity + 1)}
-              className="h-8 w-8 rounded-full flex items-center justify-center text-[#5D4037] hover:bg-[#FAF7F2] transition-colors"
+              className="h-8 w-8 rounded-full flex items-center justify-center text-[#5D4037] hover:bg-[#FAF7F2] transition-colors cursor-pointer"
             >
               <Plus className="w-4 h-4" />
             </button>

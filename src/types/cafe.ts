@@ -1,4 +1,11 @@
-export type Category = 'All' | 'Signature Drinks' | 'Espresso & Coffee' | 'Non-Coffee & Milk' | 'Matcha & Tea' | 'Pastries & Snacks';
+export type Category =
+  | 'All'
+  | 'Coffee'
+  | 'Non-Coffee'
+  | 'Blended Frappes'
+  | 'Soda & Slushies'
+  | 'Rice Meals & Sandwich'
+  | 'Pasta & Snacks';
 
 export interface MenuItem {
   id: string;

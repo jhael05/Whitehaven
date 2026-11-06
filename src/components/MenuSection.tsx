@@ -9,16 +9,19 @@ interface MenuSectionProps {
 
 const CATEGORIES: Category[] = [
   'All',
-  'Signature Drinks',
-  'Espresso & Coffee',
-  'Non-Coffee & Milk',
-  'Matcha & Tea',
-  'Pastries & Snacks',
+  'Coffee',
+  'Non-Coffee',
+  'Blended Frappes',
+  'Soda & Slushies',
+  'Rice Meals & Sandwich',
+  'Pasta & Snacks',
 ];
 
 export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
   const [selectedCategory, setSelectedCategory] = useState<Category>('All');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const featuredItems = MENU_ITEMS.filter((item) => item.isFeatured);
 
   const filteredItems = MENU_ITEMS.filter((item) => {
     const matchesCategory =
@@ -95,7 +98,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {MENU_ITEMS.slice(0, 4).map((item) => (
+              {featuredItems.slice(0, 4).map((item) => (
                 <div
                   key={item.id}
                   onClick={() => onSelectItem(item)}

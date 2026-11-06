@@ -128,6 +128,21 @@ export const OrdersHistoryModal: React.FC<OrdersHistoryModalProps> = ({
             ))
           )}
         </div>
+
+        {/* Modal Bottom Close Bar */}
+        <div className="p-4 bg-[#EFE7DD] border-t border-[#DECDBE] flex items-center justify-between">
+          <span className="text-[11px] text-[#7C6656] font-medium">
+            {orders.length} order{orders.length === 1 ? '' : 's'} recorded
+          </span>
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded-full border border-[#D8C7B6] bg-white hover:bg-[#FAF7F2] hover:text-[#3D2517] text-xs font-bold text-[#5D4037] transition cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-xs"
+          >
+            <X className="w-3.5 h-3.5" />
+            <span>Close</span>
+          </button>
+        </div>
       </div>
     </div>
   );

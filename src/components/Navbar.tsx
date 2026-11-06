@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { CafeLogo } from './CafeLogo';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { ShoppingBag, Clock, User as UserIcon, LogOut, Award, ChevronDown } from 'lucide-react';
+import { ShoppingBag, Clock, User as UserIcon, LogOut, Award, ChevronDown, X } from 'lucide-react';
 
 interface NavbarProps {
   onOpenAuth: () => void;
@@ -26,6 +26,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const { user, isAuthenticated, logout } = useAuth();
   const { totalCount, orders, setActiveOrderModal } = useCart();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [dismissedOrderIds, setDismissedOrderIds] = useState<string[]>([]);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
@@ -47,9 +48,11 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
   };
 
-  // Find latest active order if any (received or preparing or ready)
+  // Find latest active order if any (received or preparing or ready; NOT dismissed)
   const latestActiveOrder = orders.find(
-    o => o.status === 'received' || o.status === 'preparing' || o.status === 'ready'
+    o =>
+      (o.status === 'received' || o.status === 'preparing' || o.status === 'ready') &&
+      !dismissedOrderIds.includes(o.id)
   );
 
   return (
@@ -105,16 +108,30 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Right Action Buttons */}
           <div className="flex items-center gap-2.5 sm:gap-3">
-            {/* Live Order Tracker Banner Button if brewing */}
+            {/* Live Order Tracker Banner Button if actively brewing / preparing */}
             {latestActiveOrder && (
-              <button
-                onClick={() => setActiveOrderModal(latestActiveOrder)}
-                className="hidden sm:flex items-center gap-1.5 rounded-full bg-amber-100 border border-amber-300 px-3 py-1.5 text-xs font-bold text-amber-900 animate-pulse hover:bg-amber-200 transition-colors cursor-pointer"
-                title="View live order progress"
-              >
-                <Clock className="w-3.5 h-3.5 text-amber-700" />
-                <span>{latestActiveOrder.orderNumber} ({latestActiveOrder.status})</span>
-              </button>
+              <div className="hidden sm:flex items-center rounded-full bg-amber-100 border border-amber-300 pl-3 pr-1.5 py-1 text-xs font-bold text-amber-900 shadow-xs animate-pulse">
+                <button
+                  type="button"
+                  onClick={() => setActiveOrderModal(latestActiveOrder)}
+                  className="flex items-center gap-1.5 hover:text-[#8C5332] transition-colors cursor-pointer mr-1"
+                  title="View live order progress"
+                >
+                  <Clock className="w-3.5 h-3.5 text-amber-700" />
+                  <span>{latestActiveOrder.orderNumber} ({latestActiveOrder.status})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDismissedOrderIds(prev => [...prev, latestActiveOrder.id]);
+                  }}
+                  className="p-1 rounded-full text-amber-800 hover:bg-amber-200/80 transition-colors cursor-pointer"
+                  title="Dismiss status banner"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
             )}
 
             {/* Orders History Button */}

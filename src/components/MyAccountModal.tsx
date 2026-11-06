@@ -50,6 +50,7 @@ export const MyAccountModal: React.FC<MyAccountModalProps> = ({
   const [name, setName] = useState(user?.name || '');
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileSuccessMsg, setProfileSuccessMsg] = useState(false);
 
   // Address Form State
   const [addressLabel, setAddressLabel] = useState<'Home' | 'Work' | 'Other'>(
@@ -62,6 +63,7 @@ export const MyAccountModal: React.FC<MyAccountModalProps> = ({
   const [landmark, setLandmark] = useState(user?.defaultAddress?.landmark || '');
   const [riderNotes, setRiderNotes] = useState(user?.defaultAddress?.riderNotes || '');
   const [isSavingAddress, setIsSavingAddress] = useState(false);
+  const [addressSuccessMsg, setAddressSuccessMsg] = useState(false);
 
   // Password Change Form State
   const [currentPassword, setCurrentPassword] = useState('');
@@ -122,8 +124,8 @@ export const MyAccountModal: React.FC<MyAccountModalProps> = ({
   };
 
   // Save Profile Text Details
-  const handleSaveProfile = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveProfile = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!name.trim()) {
       onShowToast('Please enter your full name.');
       return;
@@ -137,6 +139,8 @@ export const MyAccountModal: React.FC<MyAccountModalProps> = ({
     setIsSavingProfile(false);
 
     if (res.success) {
+      setProfileSuccessMsg(true);
+      setTimeout(() => setProfileSuccessMsg(false), 3500);
       onShowToast('Profile details updated successfully.');
     } else {
       onShowToast(res.error || 'Failed to update profile.');
@@ -144,8 +148,8 @@ export const MyAccountModal: React.FC<MyAccountModalProps> = ({
   };
 
   // Save Default Address
-  const handleSaveAddress = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveAddress = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!houseNumber.trim() || !street.trim()) {
       onShowToast('Please provide your house/unit number and street.');
       return;
@@ -164,6 +168,8 @@ export const MyAccountModal: React.FC<MyAccountModalProps> = ({
 
     saveDefaultAddress(formatted);
     setIsSavingAddress(false);
+    setAddressSuccessMsg(true);
+    setTimeout(() => setAddressSuccessMsg(false), 3500);
     onShowToast('Default delivery address saved!');
   };
 
@@ -237,9 +243,6 @@ export const MyAccountModal: React.FC<MyAccountModalProps> = ({
                   <h3 className="font-serif-cafe text-xl font-bold tracking-tight text-[#FAF7F2]">
                     {user.name}
                   </h3>
-                  <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-[#C29B63]/25 text-[#E6C697] border border-[#C29B63]/40">
-                    VIP Patron
-                  </span>
                 </div>
                 <p className="text-xs text-[#DECDBE] mt-0.5 flex items-center gap-2">
                   <span>{user.emailOrContact}</span>
@@ -450,13 +453,21 @@ export const MyAccountModal: React.FC<MyAccountModalProps> = ({
                   </p>
                 </div>
 
-                <div className="pt-2 flex justify-end">
+                <div className="pt-2 flex flex-wrap items-center justify-end gap-3">
+                  {profileSuccessMsg && (
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-3 py-1.5 rounded-xl shadow-xs animate-fade-in">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>Changes Saved Successfully!</span>
+                    </span>
+                  )}
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={() => handleSaveProfile()}
                     disabled={isSavingProfile}
-                    className="px-6 py-2.5 rounded-xl bg-[#8C5332] hover:bg-[#724125] text-white text-xs font-bold transition shadow-sm cursor-pointer disabled:opacity-50"
+                    className="px-6 py-2.5 rounded-xl bg-[#8C5332] hover:bg-[#724125] active:scale-95 text-white text-xs font-bold transition shadow-md cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
                   >
-                    {isSavingProfile ? 'Saving Changes...' : 'Save Profile Changes'}
+                    <Check className="w-3.5 h-3.5" />
+                    <span>{isSavingProfile ? 'Saving Changes...' : 'Save Profile Changes'}</span>
                   </button>
                 </div>
               </form>
@@ -806,13 +817,21 @@ export const MyAccountModal: React.FC<MyAccountModalProps> = ({
                   />
                 </div>
 
-                <div className="pt-2 flex justify-end">
+                <div className="pt-2 flex flex-wrap items-center justify-end gap-3">
+                  {addressSuccessMsg && (
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-3 py-1.5 rounded-xl shadow-xs animate-fade-in">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>Address Saved Successfully!</span>
+                    </span>
+                  )}
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={() => handleSaveAddress()}
                     disabled={isSavingAddress}
-                    className="px-6 py-2.5 rounded-xl bg-[#8C5332] hover:bg-[#724125] text-white text-xs font-bold transition shadow-sm cursor-pointer disabled:opacity-50"
+                    className="px-6 py-2.5 rounded-xl bg-[#8C5332] hover:bg-[#724125] active:scale-95 text-white text-xs font-bold transition shadow-md cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
                   >
-                    {isSavingAddress ? 'Saving Address...' : 'Save Default Address'}
+                    <Check className="w-3.5 h-3.5" />
+                    <span>{isSavingAddress ? 'Saving Address...' : 'Save Default Address'}</span>
                   </button>
                 </div>
               </form>
@@ -931,6 +950,19 @@ export const MyAccountModal: React.FC<MyAccountModalProps> = ({
             </div>
           )}
 
+        </div>
+
+        {/* Modal Bottom Close Bar */}
+        <div className="p-4 bg-[#EFE7DD] border-t border-[#DECDBE] flex items-center justify-between flex-shrink-0">
+          <span className="text-[11px] text-[#7C6656] font-medium">White Haven Café Novaliches • Member Portal</span>
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded-full border border-[#D8C7B6] bg-white hover:bg-[#FAF7F2] hover:text-[#3D2517] text-xs font-bold text-[#5D4037] transition cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-xs"
+          >
+            <X className="w-3.5 h-3.5" />
+            <span>Close</span>
+          </button>
         </div>
 
       </div>

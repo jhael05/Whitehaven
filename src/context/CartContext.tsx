@@ -82,7 +82,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [orders, setOrders] = useState<Order[]>(() => {
     try {
       const saved = localStorage.getItem(ORDERS_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed: Order[] = JSON.parse(saved);
+      // Ensure orders from past sessions aren't stuck in active/ready state on app startup
+      return parsed.map(o => (o.status !== 'completed' ? { ...o, status: 'completed' as OrderStatus } : o));
     } catch {
       return [];
     }

@@ -393,6 +393,16 @@ export const DrinkCustomizerModal: React.FC<DrinkCustomizerModalProps> = ({
 
           <button
             type="button"
+            onClick={onClose}
+            className="px-4 py-3 rounded-full border border-[#D8C7B6] bg-white hover:bg-[#FAF7F2] text-xs font-bold text-[#5D4037] transition cursor-pointer flex items-center justify-center gap-1 active:scale-95 shadow-xs"
+            title="Close without adding"
+          >
+            <X className="w-3.5 h-3.5" />
+            <span>Close</span>
+          </button>
+
+          <button
+            type="button"
             onClick={handleAddToCart}
             className="flex-1 rounded-full bg-[#3D2517] hover:bg-[#2C1810] active:scale-[0.99] py-3.5 px-6 text-sm font-semibold text-[#FAF7F2] shadow-lg transition-all flex items-center justify-between cursor-pointer"
           >

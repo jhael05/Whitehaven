@@ -1357,14 +1357,24 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
             </div>
           </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="w-full rounded-full bg-[#3D2517] hover:bg-[#2C1810] active:scale-[0.99] py-4 text-base font-bold text-[#FAF7F2] shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <span>Confirm & Place Order</span>
-            <span className="text-amber-200">• ₱{total}</span>
-          </button>
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-3.5 rounded-full border border-[#D8C7B6] bg-white hover:bg-[#FAF7F2] text-xs font-bold text-[#5D4037] transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 shadow-xs"
+            >
+              <X className="w-4 h-4" />
+              <span>Cancel</span>
+            </button>
+            <button
+              type="submit"
+              className="flex-1 rounded-full bg-[#3D2517] hover:bg-[#2C1810] active:scale-[0.99] py-3.5 text-sm sm:text-base font-bold text-[#FAF7F2] shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>Confirm & Place Order</span>
+              <span className="text-amber-200">• ₱{total}</span>
+            </button>
+          </div>
         </form>
       </div>
     </div>

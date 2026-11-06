@@ -186,13 +186,23 @@ export const SocialLinksModal: React.FC<SocialLinksModalProps> = ({
             />
           </div>
 
-          <button
-            type="submit"
-            className="w-full mt-2 rounded-full bg-[#3D2517] hover:bg-[#2C1810] text-[#FAF7F2] py-2.5 px-4 text-xs font-semibold shadow transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-          >
-            <Save className="w-4 h-4" />
-            <span>Save Custom Links</span>
-          </button>
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2.5 rounded-full border border-[#D8C7B6] bg-white hover:bg-[#FAF7F2] text-xs font-bold text-[#5D4037] transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 shadow-xs"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Close</span>
+            </button>
+            <button
+              type="submit"
+              className="flex-1 rounded-full bg-[#3D2517] hover:bg-[#2C1810] text-[#FAF7F2] py-2.5 px-4 text-xs font-semibold shadow transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Save className="w-4 h-4" />
+              <span>Save Custom Links</span>
+            </button>
+          </div>
         </form>
       </div>
     </div>

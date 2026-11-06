@@ -102,7 +102,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
                 <div
                   key={item.id}
                   onClick={() => onSelectItem(item)}
-                  className="rounded-3xl bg-[#D9C5B2] hover:bg-[#CFB9A4] p-5 shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col items-center text-center cursor-pointer border border-[#C7B19C] hover:border-[#C29B63]/60 group relative overflow-hidden"
+                  className="rounded-3xl bg-[#D9C5B2] hover:bg-[#CFB9A4] p-5 shadow-md hover:shadow-2xl hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 ease-out flex flex-col items-center text-center cursor-pointer border border-[#C7B19C] hover:border-[#C29B63]/60 group relative overflow-hidden"
                 >
                   <div className="relative w-44 h-44 rounded-2xl overflow-hidden bg-white shadow-sm mb-4">
                     <img
@@ -111,7 +111,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                     />
                     <div className="absolute top-2 left-2 rounded-full bg-[#2C1810]/85 backdrop-blur-md px-2.5 py-0.5 text-[9px] font-bold tracking-widest uppercase text-amber-200 border border-amber-300/30">
-                      VIP Reserve
+                      House Special
                     </div>
                     <div className="absolute top-2 right-2 rounded-full bg-black/50 p-1.5 text-white backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
                       <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -172,7 +172,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
                 <div
                   key={item.id}
                   onClick={() => onSelectItem(item)}
-                  className="rounded-3xl bg-[#FAF7F2] border border-[#DECDBE] hover:border-[#C29B63]/70 overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col justify-between cursor-pointer group"
+                  className="rounded-3xl bg-[#FAF7F2] border border-[#DECDBE] hover:border-[#C29B63]/70 overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 ease-out flex flex-col justify-between cursor-pointer group"
                 >
                   <div>
                     <div className="relative h-48 w-full bg-[#EFE7DD] overflow-hidden">

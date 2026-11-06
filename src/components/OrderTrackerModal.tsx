@@ -390,6 +390,14 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
               <span>Print</span>
             </button>
 
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex items-center gap-1.5 rounded-full border border-[#D8C7B6] bg-white px-4 py-2 text-xs font-bold text-[#5D4037] hover:bg-[#FAF7F2] hover:text-[#3D2517] transition-all cursor-pointer shadow-xs active:scale-95"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Close</span>
+            </button>
           </div>
 
           <button
@@ -398,7 +406,7 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
               onClose();
               onOrderAgain();
             }}
-            className="flex-1 min-w-[140px] rounded-full bg-[#3D2517] hover:bg-[#2C1810] py-2 px-4 text-xs font-bold text-[#FAF7F2] shadow transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            className="flex-1 min-w-[140px] rounded-full bg-[#3D2517] hover:bg-[#2C1810] py-2 px-4 text-xs font-bold text-[#FAF7F2] shadow transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
           >
             <Coffee className="w-3.5 h-3.5 text-amber-300" />
             <span>Order Another</span>

@@ -447,13 +447,24 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   )}
                 </button>
 
-                <button
-                  type="button"
-                  onClick={clearCart}
-                  className="w-full text-center text-xs text-[#7C6656] hover:text-red-700 transition-colors py-1"
-                >
-                  Clear Order
-                </button>
+                <div className="flex items-center justify-between pt-1">
+                  <button
+                    type="button"
+                    onClick={clearCart}
+                    className="text-xs text-[#7C6656] hover:text-red-700 transition-colors py-1 cursor-pointer"
+                  >
+                    Clear Order
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="text-xs font-bold text-[#5D4037] hover:text-[#2C1810] transition-colors py-1 flex items-center gap-1 cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    <span>Close Cart</span>
+                  </button>
+                </div>
               </div>
             </div>
           )}

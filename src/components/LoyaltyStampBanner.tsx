@@ -34,7 +34,7 @@ export const LoyaltyStampBanner: React.FC<{ onOpenAuth: () => void }> = ({ onOpe
                   White Haven Privilège Card
                 </h3>
                 <span className="rounded-full bg-gradient-to-r from-[#C29B63] to-[#A37841] text-[#2C1810] px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest shadow-sm">
-                  VIP 8 Stamps = 1 Free Drink
+                  8 Stamps = 1 Free Drink
                 </span>
               </div>
               <p className="text-xs text-[#E8DCCF]/85 mt-0.5">

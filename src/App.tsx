@@ -141,8 +141,8 @@ const MainAppContent: React.FC = () => {
 
       {/* Global Notification Toast */}
       {toastMessage && (
-        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
-          <div className="rounded-full bg-[#2C1810] text-[#FAF7F2] px-5 py-2.5 text-xs font-bold shadow-2xl border border-white/20 flex items-center gap-2">
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[9999] animate-fade-in pointer-events-none">
+          <div className="rounded-full bg-[#2C1810] text-[#FAF7F2] px-5 py-2.5 text-xs font-bold shadow-2xl border border-white/20 flex items-center gap-2 pointer-events-auto">
             <span>☕</span>
             <span>{toastMessage}</span>
           </div>

@@ -108,6 +108,9 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
                     <img
                       src={item.image}
                       alt={item.name}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/assets/menu/spanish_latte.jpg';
+                      }}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                     />
                     <div className="absolute top-2 left-2 rounded-full bg-[#2C1810]/85 backdrop-blur-md px-2.5 py-0.5 text-[9px] font-bold tracking-widest uppercase text-amber-200 border border-amber-300/30">
@@ -179,6 +182,9 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
                       <img
                         src={item.image}
                         alt={item.name}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/assets/menu/spanish_latte.jpg';
+                        }}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                       />
                       {item.isBestSeller && (

@@ -109,6 +109,9 @@ export const DrinkCustomizerModal: React.FC<DrinkCustomizerModalProps> = ({
           <img
             src={item.image}
             alt={item.name}
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/assets/menu/spanish_latte.jpg';
+            }}
             className="w-full h-full object-cover object-center brightness-95"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />

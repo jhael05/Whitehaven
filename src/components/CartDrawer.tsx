@@ -172,6 +172,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     <img
                       src={item.menuItem.image}
                       alt={item.menuItem.name}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/assets/menu/spanish_latte.jpg';
+                      }}
                       className="h-16 w-16 rounded-xl object-cover shrink-0"
                     />
                     <div className="flex-1 min-w-0">

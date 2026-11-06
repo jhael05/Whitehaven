@@ -37,6 +37,7 @@ export interface CartItem {
   customization: Customization;
   unitPrice: number;
   totalPrice: number;
+  isComplimentaryReward?: boolean;
 }
 
 export type OrderType = 'pickup' | 'in_store' | 'delivery';

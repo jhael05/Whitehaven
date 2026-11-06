@@ -21,12 +21,14 @@ interface CartDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   onProceedToCheckout: () => void;
+  onOpenFreeDrinkPicker?: () => void;
 }
 
 export const CartDrawer: React.FC<CartDrawerProps> = ({
   isOpen,
   onClose,
   onProceedToCheckout,
+  onOpenFreeDrinkPicker,
 }) => {
   const { user, isAuthenticated } = useAuth();
   const {
@@ -66,6 +68,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   };
 
   const handleClaimReward = () => {
+    if (items.length === 0 && onOpenFreeDrinkPicker) {
+      onClose();
+      onOpenFreeDrinkPicker();
+      return;
+    }
     const res = toggleFreeDrinkClaim(user?.stampsCount || 0);
     setStampNotice(res.message);
     setTimeout(() => setStampNotice(null), 4000);
@@ -155,36 +162,93 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 <p className="text-xs text-[#7C6656] max-w-xs mt-1">
                   Discover our freshly brewed specialty coffees, Matcha Latte, Dark Mocha, and pastries!
                 </p>
-                <button
-                  onClick={onClose}
-                  className="mt-5 rounded-full bg-[#3D2517] text-[#FAF7F2] px-6 py-2.5 text-xs font-semibold hover:bg-[#2C1810] transition-colors"
-                >
-                  Browse Menu
-                </button>
+
+                {/* If user has 8 stamps, show prominent Free Drink Claim CTA in empty cart */}
+                {(user?.stampsCount || 0) >= 8 ? (
+                  <div className="mt-4 p-4 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 border-2 border-amber-400 w-full max-w-xs text-center space-y-2 shadow-sm animate-fade-in">
+                    <div className="flex items-center justify-center gap-1.5 text-xs font-black text-amber-900">
+                      <Gift className="w-4 h-4 text-[#8C5332]" />
+                      <span>8 Stamps Unlocked!</span>
+                    </div>
+                    <p className="text-[11px] text-[#6F4E37]">
+                      You have 8 stamps! Pick any handcrafted drink for ₱0 (100% Free).
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        if (onOpenFreeDrinkPicker) onOpenFreeDrinkPicker();
+                      }}
+                      className="w-full py-2 px-3 rounded-xl bg-[#8C5332] hover:bg-[#6F3E22] active:scale-95 text-amber-100 hover:text-white text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                      <span>Pick Free Drink Now (₱0)</span>
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={onClose}
+                    className="mt-5 rounded-full bg-[#3D2517] text-[#FAF7F2] px-6 py-2.5 text-xs font-semibold hover:bg-[#2C1810] transition-colors cursor-pointer"
+                  >
+                    Browse Menu
+                  </button>
+                )}
               </div>
             ) : (
               items.map((item) => (
                 <div
                   key={item.cartItemId}
-                  className="rounded-2xl border border-[#DECDBE] bg-white p-3.5 shadow-sm hover:border-[#8C5332] transition-colors"
+                  className={`rounded-2xl border p-3.5 shadow-sm transition-colors ${
+                    item.isComplimentaryReward
+                      ? 'border-emerald-400 bg-emerald-50/40'
+                      : 'border-[#DECDBE] bg-white hover:border-[#8C5332]'
+                  }`}
                 >
                   <div className="flex gap-3">
-                    <img
-                      src={item.menuItem.image}
-                      alt={item.menuItem.name}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/assets/menu/spanish_latte.jpg';
-                      }}
-                      className="h-16 w-16 rounded-xl object-cover shrink-0"
-                    />
+                    <div className="relative shrink-0">
+                      <img
+                        src={item.menuItem.image}
+                        alt={item.menuItem.name}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/assets/menu/spanish_latte.jpg';
+                        }}
+                        className="h-16 w-16 rounded-xl object-cover shrink-0"
+                      />
+                      {item.isComplimentaryReward && (
+                        <span className="absolute -top-1.5 -left-1.5 px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[8px] font-black uppercase tracking-wider shadow-xs">
+                          FREE
+                        </span>
+                      )}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-1">
-                        <h4 className="font-serif-cafe font-bold text-sm text-[#2C1810] truncate">
-                          {item.menuItem.name}
-                        </h4>
-                        <span className="font-bold text-sm text-[#8C5332]">
-                          ₱{item.totalPrice}
-                        </span>
+                        <div>
+                          <h4 className="font-serif-cafe font-bold text-sm text-[#2C1810] truncate">
+                            {item.menuItem.name}
+                          </h4>
+                          {item.isComplimentaryReward && (
+                            <span className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-800 bg-emerald-100/90 px-1.5 py-0.2 rounded mt-0.5">
+                              <Gift className="w-2.5 h-2.5 text-emerald-600" />
+                              <span>8-Stamps Reward</span>
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          {item.isComplimentaryReward ? (
+                            <div>
+                              <span className="text-[10px] text-gray-400 line-through block leading-none">
+                                ₱{item.menuItem.price}
+                              </span>
+                              <span className="font-bold text-xs text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">
+                                ₱0 FREE
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="font-bold text-sm text-[#8C5332]">
+                              ₱{item.totalPrice}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       {/* Customization Badges */}
@@ -375,6 +439,18 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           <span>🎁 Claim 1 Free Drink (8 Stamps)</span>
                         </>
                       )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        if (onOpenFreeDrinkPicker) onOpenFreeDrinkPicker();
+                      }}
+                      className="w-full py-1.5 px-3 rounded-lg text-xs font-semibold text-[#8C5332] bg-white hover:bg-amber-50 border border-amber-300 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                      <span>{isFreeDrinkClaimed ? '✨ Swap / Choose Different Free Drink (₱0)' : '✨ Pick Free Beverage from Menu (₱0)'}</span>
                     </button>
                   </div>
                 ) : (

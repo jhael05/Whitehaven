@@ -29,6 +29,7 @@ interface MyAccountModalProps {
   onClose: () => void;
   onShowToast: (msg: string) => void;
   onOpenOrdersHistory: () => void;
+  onOpenFreeDrinkClaim?: () => void;
 }
 
 type AccountTab = 'profile' | 'stamps' | 'theme' | 'address' | 'security';
@@ -38,6 +39,7 @@ export const MyAccountModal: React.FC<MyAccountModalProps> = ({
   onClose,
   onShowToast,
   onOpenOrdersHistory,
+  onOpenFreeDrinkClaim,
 }) => {
   const { user, updateUserProfile, changePassword, saveDefaultAddress, logout } = useAuth();
   const { currentTheme, availableThemes, setTheme } = useTheme();
@@ -576,11 +578,48 @@ export const MyAccountModal: React.FC<MyAccountModalProps> = ({
                   </div>
 
                   {isRewardUnlocked && (
-                    <span className="shrink-0 px-3 py-1.5 rounded-full bg-amber-400 text-[#2C1810] text-xs font-black shadow-md animate-bounce">
-                      REWARD READY
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        if (onOpenFreeDrinkClaim) onOpenFreeDrinkClaim();
+                      }}
+                      className="shrink-0 px-4 py-2 rounded-full bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-[#2C1810] text-xs font-black shadow-lg animate-bounce transition flex items-center gap-1.5 cursor-pointer active:scale-95 border border-amber-300"
+                    >
+                      <Gift className="w-3.5 h-3.5 text-[#2C1810]" />
+                      <span>Claim Free Drink Now!</span>
+                    </button>
                   )}
                 </div>
+
+                {isRewardUnlocked && (
+                  <div className="mt-4 p-4 rounded-2xl bg-gradient-to-r from-amber-400/20 via-orange-400/20 to-amber-300/10 border border-amber-300/40 relative z-10 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-amber-400 text-[#2C1810] flex items-center justify-center font-bold shrink-0">
+                        🎁
+                      </div>
+                      <div className="text-left">
+                        <p className="text-xs font-bold text-white">
+                          Your complimentary handcrafted drink is ready!
+                        </p>
+                        <p className="text-[11px] text-amber-100/80">
+                          Pick any specialty coffee, matcha, frappe, or slushie at ₱0.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        if (onOpenFreeDrinkClaim) onOpenFreeDrinkClaim();
+                      }}
+                      className="w-full sm:w-auto px-5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-[#2C1810] font-black text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <span>Pick Free Drink</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* How it Works Rules */}

@@ -38,6 +38,9 @@ interface CartContextType {
   isFreeDrinkClaimed: boolean;
   setIsFreeDrinkClaimed: (claimed: boolean) => void;
   toggleFreeDrinkClaim: (stampsCount: number) => { success: boolean; message: string };
+  addFreeRewardDrinkToCart: (menuItem: MenuItem, customization: Customization) => void;
+  removeFreeRewardDrink: () => void;
+  hasFreeDrinkInCart: boolean;
   freeDrinkValue: number;
   loyaltyDiscount: number;
   orders: Order[];
@@ -304,7 +307,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const removeFromCart = (cartItemId: string) => {
-    setItems(prev => prev.filter(i => i.cartItemId !== cartItemId));
+    setItems(prev => {
+      const target = prev.find(i => i.cartItemId === cartItemId);
+      if (target?.isComplimentaryReward) {
+        setIsFreeDrinkClaimed(false);
+      }
+      return prev.filter(i => i.cartItemId !== cartItemId);
+    });
   };
 
   const updateQuantity = (cartItemId: string, qty: number) => {
@@ -315,13 +324,49 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setItems(prev =>
       prev.map(item =>
         item.cartItemId === cartItemId
-          ? { ...item, quantity: qty, totalPrice: qty * item.unitPrice }
+          ? { ...item, quantity: qty, totalPrice: item.isComplimentaryReward ? 0 : qty * item.unitPrice }
           : item
       )
     );
   };
 
   const [isFreeDrinkClaimed, setIsFreeDrinkClaimed] = useState<boolean>(false);
+
+  const hasFreeDrinkInCart = items.some(i => i.isComplimentaryReward);
+
+  const addFreeRewardDrinkToCart = (menuItem: MenuItem, customization: Customization) => {
+    // Remove any previous complimentary drink reward first
+    setItems(prev => {
+      const filtered = prev.filter(i => !i.isComplimentaryReward);
+      const freeItem: CartItem = {
+        cartItemId: `free-reward-${Date.now()}`,
+        menuItem,
+        quantity: 1,
+        customization,
+        unitPrice: 0,
+        totalPrice: 0,
+        isComplimentaryReward: true,
+      };
+      return [freeItem, ...filtered];
+    });
+    setIsFreeDrinkClaimed(true);
+
+    try {
+      confetti({
+        particleCount: 85,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ['#D4AF37', '#8C5332', '#00897B', '#FAF7F2'],
+      });
+    } catch {
+      // ignore
+    }
+  };
+
+  const removeFreeRewardDrink = () => {
+    setItems(prev => prev.filter(i => !i.isComplimentaryReward));
+    setIsFreeDrinkClaimed(false);
+  };
 
   const clearCart = () => {
     setItems([]);
@@ -334,14 +379,35 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const deliveryFee = orderType === 'delivery' ? 49 : 0;
   const subtotal = items.reduce((acc, curr) => acc + curr.totalPrice, 0);
   const discount = Math.round((subtotal * discountPercent) / 100);
-  const freeDrinkValue = items.length > 0 ? Math.max(...items.map(i => i.unitPrice)) : 0;
-  const loyaltyDiscount = isFreeDrinkClaimed ? freeDrinkValue : 0;
+
+  const eligibleDrinks = items.filter(
+    i =>
+      ['Coffee', 'Non-Coffee', 'Blended Frappes', 'Soda & Slushies'].includes(i.menuItem.category) &&
+      !i.isComplimentaryReward
+  );
+
+  const freeDrinkValue = hasFreeDrinkInCart
+    ? (items.find(i => i.isComplimentaryReward)?.menuItem.price || 160)
+    : eligibleDrinks.length > 0
+    ? Math.max(...eligibleDrinks.map(i => i.unitPrice))
+    : items.length > 0
+    ? Math.max(...items.map(i => i.unitPrice))
+    : 160;
+
+  // If a complimentary item is already in the cart with totalPrice 0, loyaltyDiscount is 0 (to not double deduct)
+  // If user discounts an existing drink in cart, loyaltyDiscount deducts the drink's price
+  const loyaltyDiscount = isFreeDrinkClaimed && !hasFreeDrinkInCart ? freeDrinkValue : 0;
+
   const total = Math.max(0, subtotal - discount - loyaltyDiscount + deliveryFee);
   const totalCount = items.reduce((acc, curr) => acc + curr.quantity, 0);
 
   const toggleFreeDrinkClaim = (stampsCount: number) => {
     if (isFreeDrinkClaimed) {
-      setIsFreeDrinkClaimed(false);
+      if (hasFreeDrinkInCart) {
+        removeFreeRewardDrink();
+      } else {
+        setIsFreeDrinkClaimed(false);
+      }
       return { success: true, message: 'Free drink reward removed.' };
     }
     if (stampsCount < 8) {
@@ -353,10 +419,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (items.length === 0) {
       return {
         success: false,
-        message: 'Please add items to your cart before claiming your free drink reward.',
+        message: 'Your cart is empty. Pick your complimentary handcrafted drink from the menu for ₱0!',
       };
     }
     setIsFreeDrinkClaimed(true);
+    try {
+      confetti({
+        particleCount: 90,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ['#D4AF37', '#8C5332', '#00897B', '#FAF7F2'],
+      });
+    } catch {
+      // ignore
+    }
     return {
       success: true,
       message: `🎉 1 Free Handcrafted Drink Claimed! ₱${freeDrinkValue} deducted from your order.`,
@@ -543,6 +619,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isFreeDrinkClaimed,
         setIsFreeDrinkClaimed,
         toggleFreeDrinkClaim,
+        addFreeRewardDrinkToCart,
+        removeFreeRewardDrink,
+        hasFreeDrinkInCart,
         freeDrinkValue,
         loyaltyDiscount,
         orders,

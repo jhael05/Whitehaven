@@ -67,9 +67,15 @@ interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
   onRequireAuth?: () => void;
+  onOpenFreeDrinkPicker?: () => void;
 }
 
-export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, onRequireAuth }) => {
+export const CheckoutModal: React.FC<CheckoutModalProps> = ({
+  isOpen,
+  onClose,
+  onRequireAuth,
+  onOpenFreeDrinkPicker,
+}) => {
   const {
     items,
     subtotal,
@@ -143,6 +149,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
   };
 
   const handleClaimFreeDrink = () => {
+    if (items.length === 0 && onOpenFreeDrinkPicker) {
+      onClose();
+      onOpenFreeDrinkPicker();
+      return;
+    }
     const res = toggleFreeDrinkClaim(user?.stampsCount || 0);
     setRewardNotice(res.message);
     setTimeout(() => setRewardNotice(null), 4500);
@@ -1275,6 +1286,18 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                         <span>🎁 Claim 1 Free Drink Now (Redeem 8 Stamps)</span>
                       </>
                     )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      if (onOpenFreeDrinkPicker) onOpenFreeDrinkPicker();
+                    }}
+                    className="w-full py-2 px-3 rounded-xl text-xs font-semibold text-[#8C5332] bg-[#FAF7F2] hover:bg-white border border-[#D8C7B6] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                    <span>{isFreeDrinkClaimed ? '✨ Choose / Swap Different Free Beverage (₱0)' : '✨ Pick Free Beverage from Menu (₱0)'}</span>
                   </button>
                 </div>
               ) : (

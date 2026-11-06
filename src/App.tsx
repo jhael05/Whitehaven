@@ -21,6 +21,7 @@ import { OrderTrackerModal } from './components/OrderTrackerModal';
 import { OrdersHistoryModal } from './components/OrdersHistoryModal';
 import { SocialLinksModal } from './components/SocialLinksModal';
 import { LoyaltyStampBanner } from './components/LoyaltyStampBanner';
+import { FreeDrinkRewardModal } from './components/FreeDrinkRewardModal';
 
 import { MenuItem, Order } from './types/cafe';
 import { CAFE_INFO } from './data/menuData';
@@ -55,6 +56,7 @@ const MainAppContent: React.FC = () => {
   const [isOrdersHistoryOpen, setIsOrdersHistoryOpen] = useState(false);
   const [isMyAccountOpen, setIsMyAccountOpen] = useState(false);
   const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
+  const [isFreeDrinkRewardModalOpen, setIsFreeDrinkRewardModalOpen] = useState(false);
 
   const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -252,6 +254,8 @@ const MainAppContent: React.FC = () => {
             setAuthInitialMode('login');
             setIsAuthOpen(true);
           }}
+          onOpenClaimReward={() => setIsFreeDrinkRewardModalOpen(true)}
+          onOpenCart={() => setIsCartOpen(true)}
         />
 
         {/* Menu Section with the exact 4 signature drinks + full menu */}
@@ -318,6 +322,7 @@ const MainAppContent: React.FC = () => {
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         onProceedToCheckout={handleProceedToCheckout}
+        onOpenFreeDrinkPicker={() => setIsFreeDrinkRewardModalOpen(true)}
       />
 
       {/* Checkout Modal (Pick-up vs In-Store + Cash, Card, GCash, Maya) */}
@@ -330,6 +335,7 @@ const MainAppContent: React.FC = () => {
           setProceedToCheckoutAfterAuth(true);
           setIsAuthOpen(true);
         }}
+        onOpenFreeDrinkPicker={() => setIsFreeDrinkRewardModalOpen(true)}
       />
 
       {/* Auth Modal (Login, Signup, Socials, 3-Step OTP Forgot Password) */}
@@ -381,6 +387,14 @@ const MainAppContent: React.FC = () => {
         onClose={() => setIsMyAccountOpen(false)}
         onShowToast={showToast}
         onOpenOrdersHistory={() => setIsOrdersHistoryOpen(true)}
+        onOpenFreeDrinkClaim={() => setIsFreeDrinkRewardModalOpen(true)}
+      />
+
+      {/* 8-Stamps Free Drink Reward Claim Modal */}
+      <FreeDrinkRewardModal
+        isOpen={isFreeDrinkRewardModalOpen}
+        onClose={() => setIsFreeDrinkRewardModalOpen(false)}
+        onOpenCart={() => setIsCartOpen(true)}
       />
 
     </div>

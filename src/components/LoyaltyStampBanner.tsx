@@ -1,18 +1,33 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Award, Coffee, Gift, Check } from 'lucide-react';
+import { useCart } from '../context/CartContext';
+import { Award, Coffee, Gift, Check, CheckCircle2 } from 'lucide-react';
 
-export const LoyaltyStampBanner: React.FC<{ onOpenAuth: () => void }> = ({ onOpenAuth }) => {
-  const { user, isAuthenticated, claimLoyaltyReward } = useAuth();
+interface LoyaltyStampBannerProps {
+  onOpenAuth: () => void;
+  onOpenClaimReward?: () => void;
+  onOpenCart?: () => void;
+}
+
+export const LoyaltyStampBanner: React.FC<LoyaltyStampBannerProps> = ({
+  onOpenAuth,
+  onOpenClaimReward,
+  onOpenCart,
+}) => {
+  const { user, isAuthenticated } = useAuth();
+  const { isFreeDrinkClaimed, hasFreeDrinkInCart, freeDrinkValue } = useCart();
   const [rewardToast, setRewardToast] = useState(false);
 
   const stampsCount = user?.stampsCount || 0;
   const isFull = stampsCount >= 8;
 
   const handleClaim = () => {
-    if (claimLoyaltyReward()) {
-      setRewardToast(true);
-      setTimeout(() => setRewardToast(false), 3000);
+    if (isFreeDrinkClaimed && onOpenCart) {
+      onOpenCart();
+      return;
+    }
+    if (onOpenClaimReward) {
+      onOpenClaimReward();
     }
   };
 
@@ -74,10 +89,23 @@ export const LoyaltyStampBanner: React.FC<{ onOpenAuth: () => void }> = ({ onOpe
                 <button
                   type="button"
                   onClick={handleClaim}
-                  className="rounded-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white px-5 py-2 text-xs font-bold shadow-lg transition-transform active:scale-95 flex items-center gap-1.5 cursor-pointer border border-emerald-300/40"
+                  className={`rounded-full px-5 py-2 text-xs font-bold shadow-lg transition-transform active:scale-95 flex items-center gap-1.5 cursor-pointer border ${
+                    isFreeDrinkClaimed
+                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-300/40'
+                      : 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-[#2C1810] border-amber-300 animate-pulse'
+                  }`}
                 >
-                  <Gift className="w-3.5 h-3.5" />
-                  <span>Claim Free Drink!</span>
+                  {isFreeDrinkClaimed ? (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                      <span>{hasFreeDrinkInCart ? '✓ Free Drink in Cart' : `✓ Free Drink (-₱${freeDrinkValue})`}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Gift className="w-3.5 h-3.5 text-[#2C1810]" />
+                      <span>Claim Free Drink!</span>
+                    </>
+                  )}
                 </button>
               ) : (
                 <span className="text-xs font-bold text-amber-200 whitespace-nowrap bg-black/30 px-3 py-1.5 rounded-full border border-amber-400/20">

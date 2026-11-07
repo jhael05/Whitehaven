@@ -26,6 +26,22 @@ export interface UsualDrink {
   savedAt: string;
 }
 
+export interface UsualComboItem {
+  menuItem: MenuItem;
+  customization: Customization;
+  quantity: number;
+  totalPrice: number;
+}
+
+export interface UsualCombo {
+  id: string;
+  orderId?: string;
+  title: string;
+  items: UsualComboItem[];
+  totalPrice: number;
+  savedAt: string;
+}
+
 export interface MenuItem {
   id: string;
   name: string;

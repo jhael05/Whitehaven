@@ -10,6 +10,8 @@ import {
   DeliveryDetails,
   OrderRating,
   UsualDrink,
+  UsualCombo,
+  UsualComboItem,
 } from '../types/cafe';
 import confetti from 'canvas-confetti';
 
@@ -73,10 +75,15 @@ interface CartContextType {
   reorder: (order: Order) => void;
   rateOrder: (orderId: string, rating: number, feedback?: string, tags?: string[]) => void;
   usualDrinks: UsualDrink[];
+  usualCombos: UsualCombo[];
   isUsual: (menuItemId: string) => boolean;
   toggleUsualDrink: (menuItem: MenuItem, customization?: Customization) => { added: boolean; drink: UsualDrink };
   removeUsualDrink: (usualId: string) => void;
   orderUsual: (usual: UsualDrink) => void;
+  saveOrderAsCombo: (order: Order, customTitle?: string, selectedItemIds?: string[]) => { combo: UsualCombo };
+  removeUsualCombo: (comboId: string) => void;
+  orderCombo: (combo: UsualCombo) => void;
+  isOrderSavedAsCombo: (orderId: string) => boolean;
   activeOrderModal: Order | null;
   setActiveOrderModal: (order: Order | null) => void;
   orderNotification: OrderNotification | null;
@@ -89,6 +96,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 const CART_STORAGE_KEY = 'white_haven_cart_items';
 const ORDERS_STORAGE_KEY = 'white_haven_orders_history';
 const USUAL_DRINKS_STORAGE_KEY = 'white_haven_usual_drinks';
+const USUAL_COMBOS_STORAGE_KEY = 'white_haven_usual_combos';
 
 const DEFAULT_CUSTOMIZATION: Customization = {
   temperature: 'Iced',
@@ -620,27 +628,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [usualDrinks, setUsualDrinks] = useState<UsualDrink[]>(() => {
     try {
       const saved = localStorage.getItem(USUAL_DRINKS_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
-      // Pre-seed with Spanish Latte as an initial favorite so users can see how it works immediately!
-      return [
-        {
-          id: 'usual-spanish-latte',
-          menuItemId: 'c5',
-          name: 'Spanish Latte',
-          category: 'Coffee',
-          image: '/assets/menu/spanish_latte.jpg',
-          price: 160,
-          customization: {
-            temperature: 'Iced',
-            size: 'Regular (16oz)',
-            sweetness: '75%',
-            iceLevel: 'Regular Ice',
-            milkType: 'Whole Milk',
-            addOns: [],
-          },
-          savedAt: 'Cafe Signature',
-        },
-      ];
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [usualCombos, setUsualCombos] = useState<UsualCombo[]>(() => {
+    try {
+      const saved = localStorage.getItem(USUAL_COMBOS_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
     }
@@ -764,6 +761,88 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const saveOrderAsCombo = (order: Order, customTitle?: string, selectedItemIds?: string[]) => {
+    const targetItems =
+      selectedItemIds && selectedItemIds.length > 0
+        ? order.items.filter((i) => selectedItemIds.includes(i.cartItemId))
+        : order.items;
+
+    const itemsToSave: UsualComboItem[] = targetItems.map((i) => ({
+      menuItem: i.menuItem,
+      customization: i.customization,
+      quantity: i.quantity,
+      totalPrice: i.totalPrice,
+    }));
+
+    const totalComboPrice = itemsToSave.reduce((acc, curr) => acc + curr.totalPrice, 0);
+    const itemNames = itemsToSave.map((i) => i.menuItem.name).join(' + ');
+    const title = customTitle || `Combo: ${itemNames}`;
+
+    const newCombo: UsualCombo = {
+      id: `combo-${order.id}-${Date.now()}`,
+      orderId: order.id,
+      title,
+      items: itemsToSave,
+      totalPrice: totalComboPrice,
+      savedAt: new Date().toLocaleDateString([], {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+    };
+
+    const updated = [newCombo, ...usualCombos.filter((c) => c.orderId !== order.id)];
+    setUsualCombos(updated);
+    try {
+      localStorage.setItem(USUAL_COMBOS_STORAGE_KEY, JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+
+    try {
+      confetti({
+        particleCount: 85,
+        spread: 75,
+        origin: { y: 0.6 },
+        colors: ['#E11D48', '#8C5332', '#FFB800', '#FAF7F2'],
+      });
+    } catch {
+      // ignore
+    }
+
+    return { combo: newCombo };
+  };
+
+  const removeUsualCombo = (comboId: string) => {
+    const updated = usualCombos.filter((c) => c.id !== comboId && c.orderId !== comboId);
+    setUsualCombos(updated);
+    try {
+      localStorage.setItem(USUAL_COMBOS_STORAGE_KEY, JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+  };
+
+  const isOrderSavedAsCombo = (orderId: string) => {
+    return usualCombos.some((c) => c.orderId === orderId);
+  };
+
+  const orderCombo = (combo: UsualCombo) => {
+    combo.items.forEach((item) => {
+      addToCart(item.menuItem, item.customization, item.quantity);
+    });
+    try {
+      confetti({
+        particleCount: 80,
+        spread: 85,
+        origin: { y: 0.6 },
+        colors: ['#8C5332', '#E11D48', '#FFB800', '#FAF7F2'],
+      });
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -803,10 +882,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         reorder,
         rateOrder,
         usualDrinks,
+        usualCombos,
         isUsual,
         toggleUsualDrink,
         removeUsualDrink,
         orderUsual,
+        saveOrderAsCombo,
+        removeUsualCombo,
+        orderCombo,
+        isOrderSavedAsCombo,
         activeOrderModal,
         setActiveOrderModal,
         orderNotification,

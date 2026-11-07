@@ -15,6 +15,7 @@ import {
 
 interface MenuSectionProps {
   onSelectItem: (item: MenuItem) => void;
+  onOpenOrders?: () => void;
 }
 
 const CATEGORIES: Category[] = [
@@ -28,11 +29,28 @@ const CATEGORIES: Category[] = [
   'Pasta & Snacks',
 ];
 
-export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
+export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem, onOpenOrders }) => {
   const [selectedCategory, setSelectedCategory] = useState<Category>('All');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { usualDrinks, isUsual, toggleUsualDrink, orderUsual } = useCart();
+  const {
+    orders,
+    usualDrinks,
+    usualCombos,
+    isUsual,
+    toggleUsualDrink,
+    orderUsual,
+    orderCombo,
+    removeUsualCombo,
+  } = useCart();
+
+  const hasPlacedOrders = orders.length > 0;
+  const totalUsuals = usualDrinks.length + usualCombos.length;
+
+  // Only display 'My Usuals' tab if the user has placed at least one order
+  const displayedCategories = hasPlacedOrders
+    ? CATEGORIES
+    : CATEGORIES.filter((c) => c !== 'My Usuals');
 
   const featuredItems = MENU_ITEMS.filter((item) => item.isFeatured);
 
@@ -74,7 +92,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
         <div className="mt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           {/* Categories */}
           <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-none">
-            {CATEGORIES.map((cat) => {
+            {displayedCategories.map((cat) => {
               const isSelected = selectedCategory === cat;
               const isUsualTab = cat === 'My Usuals';
 
@@ -107,7 +125,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
                         isSelected ? 'bg-white/20 text-white' : 'bg-rose-200 text-rose-800'
                       }`}
                     >
-                      {usualDrinks.length}
+                      {totalUsuals}
                     </span>
                   )}
                 </button>
@@ -128,100 +146,223 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
           </div>
         </div>
 
-        {/* Quick Shelf: Your Usual Drinks (Quick 1-Click Order) */}
-        {usualDrinks.length > 0 && selectedCategory !== 'My Usuals' && !searchQuery && (
-          <div className="mt-8 rounded-3xl bg-gradient-to-r from-rose-50/90 via-amber-50/80 to-[#FAF7F2] p-5 border-2 border-rose-200/80 shadow-sm animate-fade-in">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3.5">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-xs">
-                  <Heart className="w-4 h-4 fill-white" />
+        {/* Quick Shelf: Conditional on Having Placed at Least 1 Order */}
+        {hasPlacedOrders && selectedCategory !== 'My Usuals' && !searchQuery && (
+          totalUsuals === 0 ? (
+            /* State: Placed orders, but 0 saved usuals yet - English Guidance */
+            <div className="mt-8 rounded-3xl bg-gradient-to-r from-amber-50/90 via-[#FAF7F2] to-rose-50/60 p-5 border-2 border-[#D8C7B6] shadow-xs animate-fade-in">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-start sm:items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-[#8C5332] text-amber-200 flex items-center justify-center shrink-0 shadow-xs">
+                    <Heart className="w-5 h-5 text-amber-200" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-serif-cafe text-base font-bold text-[#2C1810]">
+                        Your Usual Drinks & Combos
+                      </h3>
+                      <span className="text-[10px] font-bold bg-[#EFE7DD] text-[#8C5332] px-2 py-0.5 rounded-full border border-[#D8C7B6]">
+                        0 Saved
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#6F4E37] mt-0.5 max-w-xl">
+                      You haven&apos;t saved any usual drinks or combos yet. Go to your Order History to heart your favorite drinks or save 1-click combos for lightning-fast reordering!
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-serif-cafe text-base font-bold text-[#2C1810] flex items-center gap-1.5">
-                    <span>Your Usual Drinks</span>
-                    <span className="text-[10px] font-bold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full border border-rose-200">
-                      1-Click Order
-                    </span>
-                  </h3>
-                  <p className="text-[11px] text-[#7C6656]">
-                    Naka-heart ang mga ito para i-click mo nalang agad nang walang paligoy-ligoy!
-                  </p>
+
+                {onOpenOrders && (
+                  <button
+                    type="button"
+                    onClick={onOpenOrders}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-[#3D2517] hover:bg-[#2C1810] text-[#FAF7F2] px-4 py-2 text-xs font-bold transition shadow-xs cursor-pointer active:scale-95 shrink-0 self-start sm:self-auto"
+                  >
+                    <ShoppingBag className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Open Order History</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* State: Placed orders AND has saved usual drinks or combos */
+            <div className="mt-8 rounded-3xl bg-gradient-to-r from-rose-50/90 via-amber-50/80 to-[#FAF7F2] p-5 border-2 border-rose-200/80 shadow-sm animate-fade-in">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3.5">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-xs">
+                    <Heart className="w-4 h-4 fill-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-serif-cafe text-base font-bold text-[#2C1810] flex items-center gap-1.5">
+                      <span>Your Usual Drinks & Combos</span>
+                      <span className="text-[10px] font-bold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full border border-rose-200">
+                        1-Click Reorder
+                      </span>
+                    </h3>
+                    <p className="text-[11px] text-[#7C6656]">
+                      Your favorite drinks and bundles saved with your custom recipes—reorder in a single click!
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-start sm:self-auto">
+                  {onOpenOrders && (
+                    <button
+                      type="button"
+                      onClick={onOpenOrders}
+                      className="text-xs font-semibold text-[#8C5332] hover:text-[#5D4037] underline cursor-pointer"
+                    >
+                      Orders History
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCategory('My Usuals')}
+                    className="text-xs font-bold text-rose-700 hover:text-rose-900 underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>View All ({totalUsuals})</span>
+                  </button>
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setSelectedCategory('My Usuals')}
-                className="text-xs font-bold text-rose-700 hover:text-rose-900 underline flex items-center gap-1 self-start sm:self-auto cursor-pointer"
-              >
-                <span>Tingnan Lahat ({usualDrinks.length})</span>
-              </button>
-            </div>
-
-            {/* Horizontal Scroll of Usual Drinks */}
-            <div className="flex items-center gap-3.5 overflow-x-auto pb-2 scrollbar-none">
-              {usualDrinks.map((usual) => (
-                <div
-                  key={usual.id}
-                  className="rounded-2xl bg-white border border-rose-200/90 p-3 shadow-xs hover:shadow-md transition-all shrink-0 w-64 flex flex-col justify-between group"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <img
-                      src={usual.image}
-                      alt={usual.name}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/assets/menu/spanish_latte.jpg';
-                      }}
-                      className="w-14 h-14 rounded-xl object-cover shrink-0 border border-[#D8C7B6]"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-1">
-                        <h4 className="font-serif-cafe text-xs font-bold text-[#2C1810] truncate group-hover:text-rose-700 transition-colors">
-                          {usual.name}
-                        </h4>
+              {/* Horizontal Scroll of Usual Combos & Usual Drinks */}
+              <div className="flex items-center gap-3.5 overflow-x-auto pb-2 scrollbar-none">
+                {/* 1. Saved Usual Combos */}
+                {usualCombos.map((combo) => (
+                  <div
+                    key={combo.id}
+                    className="rounded-2xl bg-white border-2 border-amber-300 p-3 shadow-xs hover:shadow-md transition-all shrink-0 w-72 flex flex-col justify-between group"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-1 pb-1 border-b border-amber-100">
+                        <span className="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <Zap className="w-3 h-3 text-amber-600 fill-amber-500" />
+                          <span>1-Click Combo</span>
+                        </span>
                         <button
                           type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleUsualDrink({
-                              id: usual.menuItemId,
-                              name: usual.name,
-                              category: usual.category,
-                              image: usual.image,
-                              price: usual.price,
-                              description: '',
-                            });
-                          }}
-                          title="Remove from usuals"
-                          className="text-rose-400 hover:text-rose-600 p-0.5"
+                          onClick={() => removeUsualCombo(combo.id)}
+                          title="Remove combo"
+                          className="text-gray-400 hover:text-rose-600 p-0.5 cursor-pointer text-xs"
                         >
-                          <Heart className="w-3.5 h-3.5 fill-rose-500" />
+                          ✕
                         </button>
                       </div>
-                      <span className="text-xs font-black text-[#8C5332] block">
-                        ₱{usual.price}
-                      </span>
-                      <p className="text-[10px] text-[#7C6656] truncate mt-0.5">
-                        {usual.customization?.temperature || 'Iced'} •{' '}
-                        {usual.customization?.size ? usual.customization.size.split(' ')[0] : '16oz'}
-                        {usual.customization?.sweetness && ` • ${usual.customization.sweetness}`}
-                      </p>
-                    </div>
-                  </div>
 
-                  {/* 1-Click Quick Order Button */}
-                  <button
-                    type="button"
-                    onClick={() => orderUsual(usual)}
-                    className="mt-2.5 w-full rounded-xl bg-gradient-to-r from-rose-600 to-[#8C5332] hover:from-rose-500 hover:to-[#6F3E22] text-white py-2 px-3 text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+                      <h4 className="font-serif-cafe text-xs font-bold text-[#2C1810] mt-2 group-hover:text-[#8C5332] line-clamp-1">
+                        {combo.title}
+                      </h4>
+
+                      <div className="my-2 space-y-1">
+                        {combo.items.map((ci, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-2 text-[11px] text-[#5D4037] bg-[#FAF7F2] p-1.5 rounded-lg border border-[#F0E6DB]"
+                          >
+                            <img
+                              src={ci.menuItem.image}
+                              alt={ci.menuItem.name}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src =
+                                  '/assets/menu/spanish_latte.jpg';
+                              }}
+                              className="w-7 h-7 rounded-md object-cover shrink-0"
+                            />
+                            <div className="min-w-0 flex-1 truncate">
+                              <span className="font-bold text-[#2C1810]">
+                                {ci.quantity}x {ci.menuItem.name}
+                              </span>
+                              <span className="text-[10px] text-[#7C6656] block truncate">
+                                {ci.customization?.temperature || 'Iced'} • {ci.customization?.size?.split(' ')[0] || '16oz'}
+                              </span>
+                            </div>
+                            <span className="text-[10px] font-bold text-[#8C5332]">
+                              ₱{ci.totalPrice}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 1-Click Order Combo Button */}
+                    <button
+                      type="button"
+                      onClick={() => orderCombo(combo)}
+                      className="mt-2 w-full rounded-xl bg-gradient-to-r from-amber-600 to-[#8C5332] hover:from-amber-500 hover:to-[#6F3E22] text-white py-2 px-3 text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+                    >
+                      <Zap className="w-3.5 h-3.5 text-amber-200 fill-amber-200" />
+                      <span>⚡ 1-Click Order Combo (₱{combo.totalPrice})</span>
+                    </button>
+                  </div>
+                ))}
+
+                {/* 2. Saved Single Usual Drinks */}
+                {usualDrinks.map((usual) => (
+                  <div
+                    key={usual.id}
+                    className="rounded-2xl bg-white border border-rose-200/90 p-3 shadow-xs hover:shadow-md transition-all shrink-0 w-64 flex flex-col justify-between group"
                   >
-                    <Zap className="w-3.5 h-3.5 text-amber-300" />
-                    <span>Quick 1-Click Add (₱{usual.price})</span>
-                  </button>
-                </div>
-              ))}
+                    <div className="flex items-center gap-2.5">
+                      <img
+                        src={usual.image}
+                        alt={usual.name}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            '/assets/menu/spanish_latte.jpg';
+                        }}
+                        className="w-14 h-14 rounded-xl object-cover shrink-0 border border-[#D8C7B6]"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-1">
+                          <h4 className="font-serif-cafe text-xs font-bold text-[#2C1810] truncate group-hover:text-rose-700 transition-colors">
+                            {usual.name}
+                          </h4>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleUsualDrink({
+                                id: usual.menuItemId,
+                                name: usual.name,
+                                category: usual.category,
+                                image: usual.image,
+                                price: usual.price,
+                                description: '',
+                              });
+                            }}
+                            title="Remove from usuals"
+                            className="text-rose-400 hover:text-rose-600 p-0.5 cursor-pointer"
+                          >
+                            <Heart className="w-3.5 h-3.5 fill-rose-500" />
+                          </button>
+                        </div>
+                        <span className="text-xs font-black text-[#8C5332] block">
+                          ₱{usual.price}
+                        </span>
+                        <p className="text-[10px] text-[#7C6656] truncate mt-0.5">
+                          {usual.customization?.temperature || 'Iced'} •{' '}
+                          {usual.customization?.size
+                            ? usual.customization.size.split(' ')[0]
+                            : '16oz'}
+                          {usual.customization?.sweetness &&
+                            ` • ${usual.customization.sweetness}`}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 1-Click Quick Order Button */}
+                    <button
+                      type="button"
+                      onClick={() => orderUsual(usual)}
+                      className="mt-2.5 w-full rounded-xl bg-gradient-to-r from-rose-600 to-[#8C5332] hover:from-rose-500 hover:to-[#6F3E22] text-white py-2 px-3 text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+                    >
+                      <Zap className="w-3.5 h-3.5 text-amber-300" />
+                      <span>1-Click Order (₱{usual.price})</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )
         )}
 
         {/* Featured 4 Menu Items Showcase */}
@@ -267,7 +408,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
                           e.stopPropagation();
                           toggleUsualDrink(item);
                         }}
-                        title={favorited ? 'Naka-save sa Usual Drinks' : 'I-heart bilang Usual Drink'}
+                        title={favorited ? 'Saved in your Usual Drinks' : 'Heart to save as your Usual Drink'}
                         className={`absolute top-2 right-2 rounded-full p-2 backdrop-blur-md transition-all shadow-md active:scale-90 z-10 cursor-pointer ${
                           favorited
                             ? 'bg-rose-500 text-white scale-105'
@@ -316,38 +457,149 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-serif-cafe text-xl font-bold text-[#2C1810]">
               {selectedCategory === 'My Usuals'
-                ? `❤️ Your Usual Drinks (${filteredItems.length})`
+                ? `❤️ Your Usual Drinks & Combos (${totalUsuals})`
                 : selectedCategory === 'All' && !searchQuery
                 ? 'All Handcrafted Drinks & Bites'
                 : `${selectedCategory} (${filteredItems.length})`}
             </h3>
             {selectedCategory === 'My Usuals' && (
               <span className="text-xs text-[#7C6656]">
-                I-click lang ang alinman para agad ma-order ang iyong paborito!
+                Tap any drink or combo for instant 1-click ordering!
               </span>
             )}
           </div>
 
-          {filteredItems.length === 0 ? (
+          {/* If My Usuals tab is selected and user has saved combos, showcase combos first */}
+          {selectedCategory === 'My Usuals' && usualCombos.length > 0 && (
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#8C5332] flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                  <span>Saved 1-Click Combos ({usualCombos.length})</span>
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {usualCombos.map((combo) => (
+                  <div
+                    key={combo.id}
+                    className="rounded-3xl bg-white border-2 border-amber-300 p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between pb-2 border-b border-amber-100">
+                        <span className="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <Zap className="w-3 h-3 text-amber-600 fill-amber-500" />
+                          <span>1-Click Combo</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeUsualCombo(combo.id)}
+                          className="text-xs text-gray-400 hover:text-rose-600 cursor-pointer p-1"
+                          title="Remove combo"
+                        >
+                          ✕ Remove
+                        </button>
+                      </div>
+
+                      <h4 className="font-serif-cafe text-sm font-bold text-[#2C1810] mt-2.5">
+                        {combo.title}
+                      </h4>
+                      <p className="text-[11px] text-[#7C6656] mt-0.5">
+                        Saved on {combo.savedAt}
+                      </p>
+
+                      <div className="my-3 space-y-1.5">
+                        {combo.items.map((ci, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-2.5 bg-[#FAF7F2] p-2 rounded-xl border border-[#F0E6DB]"
+                          >
+                            <img
+                              src={ci.menuItem.image}
+                              alt={ci.menuItem.name}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src =
+                                  '/assets/menu/spanish_latte.jpg';
+                              }}
+                              className="w-9 h-9 rounded-lg object-cover shrink-0 border border-[#D8C7B6]"
+                            />
+                            <div className="min-w-0 flex-1">
+                              <span className="font-bold text-xs text-[#2C1810] block truncate">
+                                {ci.quantity}x {ci.menuItem.name}
+                              </span>
+                              <span className="text-[10px] text-[#7C6656]">
+                                {ci.customization?.temperature || 'Iced'} • {ci.customization?.size?.split(' ')[0] || '16oz'}
+                              </span>
+                            </div>
+                            <span className="text-xs font-bold text-[#8C5332]">
+                              ₱{ci.totalPrice}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-amber-100 flex items-center justify-between gap-2">
+                      <div>
+                        <span className="text-[11px] text-[#7C6656] block">Combo Total:</span>
+                        <span className="text-sm font-black text-[#8C5332]">₱{combo.totalPrice}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => orderCombo(combo)}
+                        className="rounded-full bg-[#8C5332] hover:bg-[#6F3E22] text-white px-4 py-2 text-xs font-bold transition shadow-xs flex items-center gap-1.5 active:scale-95 cursor-pointer"
+                      >
+                        <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+                        <span>1-Click Order Combo</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* If My Usuals has drinks section title */}
+          {selectedCategory === 'My Usuals' && filteredItems.length > 0 && usualCombos.length > 0 && (
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#8C5332] flex items-center gap-1.5">
+                <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+                <span>Saved Single Drinks ({filteredItems.length})</span>
+              </span>
+            </div>
+          )}
+
+          {filteredItems.length === 0 && (selectedCategory !== 'My Usuals' || usualCombos.length === 0) ? (
             <div className="text-center py-16 bg-[#FAF7F2] rounded-3xl border border-[#DECDBE]">
               {selectedCategory === 'My Usuals' ? (
                 <div className="max-w-md mx-auto space-y-3 px-4">
-                  <div className="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+                  <div className="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-xs">
                     <Heart className="w-7 h-7 text-rose-500" />
                   </div>
                   <h4 className="font-serif-cafe text-lg font-bold text-[#2C1810]">
-                    Wala Pang Naka-heart na Usual Drinks
+                    No Usual Drinks or Combos Saved Yet
                   </h4>
                   <p className="text-xs text-[#7C6656] leading-relaxed">
-                    Pindutin ang ❤️ Heart icon sa kahit anong menu item o sa iyong Order History para lumabas dito ang iyong Usual Drinks at ma-order mo sa isang click lang!
+                    You haven&apos;t saved any usual drinks or combos yet. Tap the ❤️ Heart icon on any drink in our menu or save 1-click combos directly from your Order History!
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedCategory('All')}
-                    className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[#3D2517] text-white px-5 py-2 text-xs font-bold hover:bg-[#2C1810] transition-colors cursor-pointer"
-                  >
-                    <span>Mag-browse sa Buong Menu</span>
-                  </button>
+                  <div className="flex items-center justify-center gap-2 pt-2">
+                    {onOpenOrders && (
+                      <button
+                        type="button"
+                        onClick={onOpenOrders}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-[#3D2517] text-[#FAF7F2] px-4 py-2 text-xs font-bold hover:bg-[#2C1810] transition-colors cursor-pointer shadow-xs active:scale-95"
+                      >
+                        <ShoppingBag className="w-3.5 h-3.5 text-amber-300" />
+                        <span>Open Order History</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCategory('All')}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-white border border-[#D8C7B6] text-[#5D4037] px-4 py-2 text-xs font-bold hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+                    >
+                      <span>Browse Full Menu</span>
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div>
@@ -412,7 +664,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
                             e.stopPropagation();
                             toggleUsualDrink(item);
                           }}
-                          title={favorited ? 'Naka-save sa Usual Drinks' : 'I-heart bilang Usual Drink'}
+                          title={favorited ? 'Saved in your Usual Drinks' : 'Heart to save as your Usual Drink'}
                           className={`absolute top-3 right-3 rounded-full p-2 backdrop-blur-md transition-all shadow-md active:scale-90 z-10 cursor-pointer ${
                             favorited
                               ? 'bg-rose-500 text-white scale-105 ring-2 ring-rose-300'

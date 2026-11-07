@@ -260,7 +260,10 @@ const MainAppContent: React.FC = () => {
         />
 
         {/* Menu Section with the exact 4 signature drinks + full menu */}
-        <MenuSection onSelectItem={(item) => setSelectedMenuItem(item)} />
+        <MenuSection
+          onSelectItem={(item) => setSelectedMenuItem(item)}
+          onOpenOrders={() => setIsOrdersHistoryOpen(true)}
+        />
 
         {/* About Us & Novaliches Location Section matching screenshot */}
         <AboutUsSection

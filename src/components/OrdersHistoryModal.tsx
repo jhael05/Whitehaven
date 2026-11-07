@@ -15,6 +15,9 @@ import {
   ChevronDown,
   ChevronUp,
   Plus,
+  Zap,
+  Check,
+  Layers,
 } from 'lucide-react';
 
 interface OrdersHistoryModalProps {
@@ -40,7 +43,19 @@ export const OrdersHistoryModal: React.FC<OrdersHistoryModalProps> = ({
   onSelectOrder,
   onShowToast,
 }) => {
-  const { orders, reorder, rateOrder, toggleUsualDrink, isUsual, addToCart } = useCart();
+  const {
+    orders,
+    reorder,
+    rateOrder,
+    toggleUsualDrink,
+    isUsual,
+    addToCart,
+    usualCombos,
+    saveOrderAsCombo,
+    removeUsualCombo,
+    orderCombo,
+    isOrderSavedAsCombo,
+  } = useCart();
 
   // State for tracking which order has active rating form open
   const [ratingOrderIds, setRatingOrderIds] = useState<{ [orderId: string]: boolean }>({});
@@ -101,15 +116,39 @@ export const OrdersHistoryModal: React.FC<OrdersHistoryModalProps> = ({
   const handleSaveItemAsUsual = (item: CartItem) => {
     const result = toggleUsualDrink(item.menuItem, item.customization);
     if (result.added) {
-      showLocalToast(`❤️ Na-save ang ${item.menuItem.name} sa iyong Usual Drinks!`);
+      showLocalToast(`❤️ Saved ${item.menuItem.name} to your Usual Drinks!`);
     } else {
-      showLocalToast(`Tinanggal ang ${item.menuItem.name} sa iyong Usual Drinks.`);
+      showLocalToast(`Removed ${item.menuItem.name} from your Usual Drinks.`);
     }
   };
 
   const handleQuickAddSingleItem = (item: CartItem) => {
     addToCart(item.menuItem, item.customization, 1);
-    showLocalToast(`☕ Naidagdag ang ${item.menuItem.name} sa iyong cart!`);
+    showLocalToast(`☕ Added ${item.menuItem.name} to your cart!`);
+  };
+
+  const handleToggleSaveCombo = (order: Order) => {
+    const isSaved = isOrderSavedAsCombo(order.id);
+    if (isSaved) {
+      removeUsualCombo(order.id);
+      showLocalToast('Removed combo from your Usual Combos.');
+    } else {
+      const { combo } = saveOrderAsCombo(order);
+      showLocalToast(`⚡ Saved "${combo.title}" as 1-Click Usual Combo!`);
+    }
+  };
+
+  const handle1ClickOrderCombo = (order: Order) => {
+    const existing = usualCombos.find((c) => c.orderId === order.id);
+    if (existing) {
+      orderCombo(existing);
+      showLocalToast(`⚡ Added "${existing.title}" combo to cart!`);
+    } else {
+      order.items.forEach((item) => {
+        addToCart(item.menuItem, item.customization, item.quantity);
+      });
+      showLocalToast(`⚡ Added all ${order.items.length} items to cart in 1 click!`);
+    }
   };
 
   return (
@@ -129,7 +168,7 @@ export const OrdersHistoryModal: React.FC<OrdersHistoryModalProps> = ({
                 </span>
               </div>
               <p className="text-xs text-[#E8DCCF]/80">
-                Rate your drinks, give feedback, at i-heart ang iyong Usual Drinks!
+                Rate your orders, share barista feedback, and heart your Usual Drinks!
               </p>
             </div>
           </div>
@@ -279,8 +318,8 @@ export const OrdersHistoryModal: React.FC<OrdersHistoryModalProps> = ({
                               onClick={() => handleSaveItemAsUsual(item)}
                               title={
                                 isFavorited
-                                  ? 'Naka-save sa iyong Usual Drinks'
-                                  : 'I-heart at i-save bilang Usual Drink'
+                                  ? 'Saved in your Usual Drinks'
+                                  : 'Heart to save as your Usual Drink'
                               }
                               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer shadow-2xs active:scale-95 ${
                                 isFavorited
@@ -313,6 +352,89 @@ export const OrdersHistoryModal: React.FC<OrdersHistoryModalProps> = ({
                       );
                     })}
                   </div>
+
+                  {/* 1-Click Usual Combo Section */}
+                  {(() => {
+                    const isComboSaved = isOrderSavedAsCombo(ord.id);
+                    const comboPrice = ord.items.reduce((sum, i) => sum + i.totalPrice, 0);
+
+                    return (
+                      <div
+                        className={`mt-2 p-3 rounded-2xl border transition-all ${
+                          isComboSaved
+                            ? 'bg-amber-50/90 border-amber-300 shadow-2xs'
+                            : 'bg-[#F7EFE6]/80 border-[#E8DCCF]'
+                        }`}
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                          <div className="flex items-center gap-2.5">
+                            <div
+                              className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                                isComboSaved
+                                  ? 'bg-amber-500 text-white shadow-xs'
+                                  : 'bg-[#E3D2C1] text-[#8C5332]'
+                              }`}
+                            >
+                              <Zap className="w-4 h-4 fill-amber-200" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-bold text-xs text-[#2C1810]">
+                                  {isComboSaved ? '⚡ Usual Combo Active' : '⚡ 1-Click Usual Combo'}
+                                </span>
+                                {isComboSaved && (
+                                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.2 rounded-full border border-emerald-300">
+                                    Saved on Menu
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-[#7C6656]">
+                                {isComboSaved
+                                  ? 'Ready on your menu for 1-click instant ordering!'
+                                  : `Save all ${ord.items.length} items from this order into a 1-click combo for next time.`}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 self-end sm:self-auto">
+                            {/* Toggle Save as Combo */}
+                            <button
+                              type="button"
+                              onClick={() => handleToggleSaveCombo(ord)}
+                              className={`px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-2xs ${
+                                isComboSaved
+                                  ? 'bg-white border border-amber-300 text-amber-900 hover:bg-amber-100'
+                                  : 'bg-[#8C5332] text-white hover:bg-[#6F3E22]'
+                              }`}
+                            >
+                              {isComboSaved ? (
+                                <>
+                                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                  <span>Saved as Combo</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Zap className="w-3.5 h-3.5 text-amber-300" />
+                                  <span>Save as Combo</span>
+                                </>
+                              )}
+                            </button>
+
+                            {/* 1-Click Order Combo */}
+                            <button
+                              type="button"
+                              onClick={() => handle1ClickOrderCombo(ord)}
+                              title="Add this entire combo to cart in 1 click"
+                              className="px-3 py-1.5 rounded-full bg-[#3D2517] hover:bg-[#2C1810] text-white text-xs font-bold transition cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-2xs"
+                            >
+                              <Zap className="w-3 h-3 text-amber-300" />
+                              <span>1-Click Order (₱{comboPrice})</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Rating & Feedback Card */}
                   <div className="mt-2 pt-3 border-t border-[#F0E6DB]">

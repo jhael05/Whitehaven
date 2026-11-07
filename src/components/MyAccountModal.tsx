@@ -45,7 +45,15 @@ export const MyAccountModal: React.FC<MyAccountModalProps> = ({
 }) => {
   const { user, updateUserProfile, changePassword, saveDefaultAddress, logout } = useAuth();
   const { currentTheme, availableThemes, setTheme } = useTheme();
-  const { orders, usualDrinks, orderUsual, removeUsualDrink } = useCart();
+  const {
+    orders,
+    usualDrinks,
+    usualCombos,
+    orderUsual,
+    removeUsualDrink,
+    orderCombo,
+    removeUsualCombo,
+  } = useCart();
 
   const [activeTab, setActiveTab] = useState<AccountTab>('profile');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -295,7 +303,7 @@ export const MyAccountModal: React.FC<MyAccountModalProps> = ({
               }`}
             >
               <Heart className="w-3.5 h-3.5 fill-rose-300 text-rose-300" />
-              <span>Usual Drinks ({usualDrinks.length})</span>
+              <span>Usual Drinks & Combos ({usualDrinks.length + usualCombos.length})</span>
             </button>
 
             <button
@@ -522,112 +530,239 @@ export const MyAccountModal: React.FC<MyAccountModalProps> = ({
                   </div>
                   <div>
                     <h3 className="font-serif-cafe text-lg font-bold text-[#2C1810] flex items-center gap-2">
-                      <span>Your Usual Drinks ({usualDrinks.length})</span>
+                      <span>Your Usual Drinks & Combos ({usualDrinks.length + usualCombos.length})</span>
                       <span className="text-[10px] font-bold bg-rose-100 text-rose-700 px-2.5 py-0.5 rounded-full border border-rose-200">
                         1-Click Order
                       </span>
                     </h3>
                     <p className="text-xs text-[#6F4E37] mt-0.5">
-                      Ito ang mga inumin na iyong na-heart! Puwede mo itong ma-order sa isang pindot lang nang hindi na kailangang i-configure pa.
+                      Your favorite handcrafted drinks and meal bundles saved with your custom preferences. Reorder them with a single click anytime!
                     </p>
                   </div>
                 </div>
               </div>
 
-              {usualDrinks.length === 0 ? (
+              {usualDrinks.length === 0 && usualCombos.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-2xl border border-[#DECDBE] p-6 space-y-3">
-                  <div className="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+                  <div className="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-xs">
                     <Heart className="w-7 h-7 text-rose-500" />
                   </div>
                   <h4 className="font-serif-cafe text-base font-bold text-[#2C1810]">
-                    Wala Pang Naka-heart na Usual Drinks
+                    No Usual Drinks or Combos Saved Yet
                   </h4>
                   <p className="text-xs text-[#7C6656] max-w-sm mx-auto leading-relaxed">
-                    Pumunta sa aming Menu o sa iyong Order History at pindutin ang ❤️ Heart icon sa paborito mong kape o drink para lumabas dito!
+                    You haven&apos;t saved any usuals yet. Explore our menu or visit your Order History to heart your favorite drinks or save 1-click combos for lightning-fast reordering!
                   </p>
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-[#3D2517] text-white px-5 py-2 text-xs font-bold hover:bg-[#2C1810] transition-colors cursor-pointer shadow-xs"
-                  >
-                    <Coffee className="w-3.5 h-3.5 text-amber-300" />
-                    <span>Mag-browse sa Menu</span>
-                  </button>
+                  <div className="flex items-center justify-center gap-2.5 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        onOpenOrdersHistory();
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-[#8C5332] text-white px-5 py-2 text-xs font-bold hover:bg-[#6F3E22] transition-colors cursor-pointer shadow-xs active:scale-95"
+                    >
+                      <span>Open Order History</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-[#3D2517] text-white px-5 py-2 text-xs font-bold hover:bg-[#2C1810] transition-colors cursor-pointer shadow-xs"
+                    >
+                      <Coffee className="w-3.5 h-3.5 text-amber-300" />
+                      <span>Browse Drink Menu</span>
+                    </button>
+                  </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {usualDrinks.map((usual) => (
-                    <div
-                      key={usual.id}
-                      className="rounded-2xl border border-rose-200/90 bg-white p-4 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
-                    >
-                      <div className="flex items-start gap-3">
-                        <img
-                          src={usual.image}
-                          alt={usual.name}
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = '/assets/menu/spanish_latte.jpg';
-                          }}
-                          className="w-16 h-16 rounded-xl object-cover shrink-0 border border-[#D8C7B6]"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#8C5332]">
-                              {usual.category}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                removeUsualDrink(usual.id);
-                                onShowToast(`Tinanggal ang ${usual.name} sa iyong Usual Drinks.`);
-                              }}
-                              title="Remove from usuals"
-                              className="text-gray-400 hover:text-rose-600 p-1 transition-colors cursor-pointer"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                          <h4 className="font-serif-cafe text-base font-bold text-[#2C1810] group-hover:text-rose-700 transition-colors">
-                            {usual.name}
-                          </h4>
-                          <span className="text-xs font-black text-[#8C5332]">
-                            ₱{usual.price}
-                          </span>
-                          <div className="text-[11px] text-[#7C6656] mt-1 bg-[#FAF7F2] p-1.5 rounded-lg border border-[#EFE7DD]">
-                            <span>
-                              {usual.customization?.temperature || 'Iced'} •{' '}
-                              {usual.customization?.size ? usual.customization.size.split(' ')[0] : '16oz'}
-                            </span>
-                            {usual.customization?.sweetness && (
-                              <span> • {usual.customization.sweetness} Sugar</span>
-                            )}
-                            {usual.customization?.milkType && usual.customization.milkType !== 'Whole Milk' && (
-                              <span> • {usual.customization.milkType.split(' ')[0]}</span>
-                            )}
-                          </div>
-                        </div>
+                <div className="space-y-6">
+                  {/* Saved 1-Click Combos Section */}
+                  {usualCombos.length > 0 && (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold uppercase tracking-wider text-[#8C5332] flex items-center gap-1.5">
+                          <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                          <span>Saved 1-Click Combos ({usualCombos.length})</span>
+                        </span>
                       </div>
 
-                      <div className="mt-3 pt-3 border-t border-[#F0E6DB] flex items-center justify-between gap-2">
-                        <span className="text-[10px] text-[#9E8B7A]">
-                          Saved {usual.savedAt}
-                        </span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {usualCombos.map((combo) => (
+                          <div
+                            key={combo.id}
+                            className="rounded-2xl border-2 border-amber-300 bg-white p-4 shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+                          >
+                            <div>
+                              <div className="flex items-center justify-between pb-2 border-b border-amber-100">
+                                <span className="text-[10px] font-bold bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                                  <Zap className="w-3 h-3 text-amber-600 fill-amber-500" />
+                                  <span>1-Click Combo</span>
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    removeUsualCombo(combo.id);
+                                    onShowToast('Removed combo from your Usuals.');
+                                  }}
+                                  className="text-xs text-gray-400 hover:text-rose-600 cursor-pointer"
+                                  title="Remove combo"
+                                >
+                                  ✕ Remove
+                                </button>
+                              </div>
 
-                        <button
-                          type="button"
-                          onClick={() => {
-                            orderUsual(usual);
-                            onClose();
-                            onShowToast(`☕ Naidagdag ang iyong Usual (${usual.name}) sa cart!`);
-                          }}
-                          className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-[#8C5332] hover:from-rose-500 hover:to-[#6F3E22] text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
-                        >
-                          <Zap className="w-3.5 h-3.5 text-amber-300" />
-                          <span>1-Click Order (₱{usual.price})</span>
-                        </button>
+                              <h4 className="font-serif-cafe text-sm font-bold text-[#2C1810] mt-2.5">
+                                {combo.title}
+                              </h4>
+                              <p className="text-[10px] text-[#7C6656] mt-0.5">
+                                Saved on {combo.savedAt}
+                              </p>
+
+                              <div className="my-2.5 space-y-1.5">
+                                {combo.items.map((ci, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="flex items-center gap-2 bg-[#FAF7F2] p-1.5 rounded-xl border border-[#F0E6DB] text-xs"
+                                  >
+                                    <img
+                                      src={ci.menuItem.image}
+                                      alt={ci.menuItem.name}
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).src =
+                                          '/assets/menu/spanish_latte.jpg';
+                                      }}
+                                      className="w-8 h-8 rounded-lg object-cover shrink-0 border border-[#D8C7B6]"
+                                    />
+                                    <div className="min-w-0 flex-1">
+                                      <span className="font-bold text-[#2C1810] block truncate">
+                                        {ci.quantity}x {ci.menuItem.name}
+                                      </span>
+                                      <span className="text-[10px] text-[#7C6656]">
+                                        {ci.customization?.temperature || 'Iced'} • {ci.customization?.size?.split(' ')[0] || '16oz'}
+                                      </span>
+                                    </div>
+                                    <span className="text-xs font-bold text-[#8C5332]">
+                                      ₱{ci.totalPrice}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="mt-3 pt-2.5 border-t border-amber-100 flex items-center justify-between gap-2">
+                              <div>
+                                <span className="text-[10px] text-[#7C6656] block">Combo Total:</span>
+                                <span className="text-sm font-black text-[#8C5332]">
+                                  ₱{combo.totalPrice}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  orderCombo(combo);
+                                  onClose();
+                                  onShowToast(`⚡ Added "${combo.title}" combo to cart!`);
+                                }}
+                                className="px-4 py-2 rounded-xl bg-[#8C5332] hover:bg-[#6F3E22] text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5 active:scale-95 cursor-pointer"
+                              >
+                                <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+                                <span>1-Click Order Combo</span>
+                              </button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  ))}
+                  )}
+
+                  {/* Saved Single Drinks Section */}
+                  {usualDrinks.length > 0 && (
+                    <div className="space-y-3">
+                      {usualCombos.length > 0 && (
+                        <div className="flex items-center gap-2 pt-2">
+                          <span className="text-xs font-bold uppercase tracking-wider text-[#8C5332] flex items-center gap-1.5">
+                            <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+                            <span>Saved Single Drinks ({usualDrinks.length})</span>
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {usualDrinks.map((usual) => (
+                          <div
+                            key={usual.id}
+                            className="rounded-2xl border border-rose-200/90 bg-white p-4 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
+                          >
+                            <div className="flex items-start gap-3">
+                              <img
+                                src={usual.image}
+                                alt={usual.name}
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = '/assets/menu/spanish_latte.jpg';
+                                }}
+                                className="w-16 h-16 rounded-xl object-cover shrink-0 border border-[#D8C7B6]"
+                              />
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center justify-between gap-1">
+                                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#8C5332]">
+                                    {usual.category}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      removeUsualDrink(usual.id);
+                                      onShowToast(`Removed ${usual.name} from your Usual Drinks.`);
+                                    }}
+                                    title="Remove from usuals"
+                                    className="text-gray-400 hover:text-rose-600 p-1 transition-colors cursor-pointer"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                                <h4 className="font-serif-cafe text-base font-bold text-[#2C1810] group-hover:text-rose-700 transition-colors">
+                                  {usual.name}
+                                </h4>
+                                <span className="text-xs font-black text-[#8C5332]">
+                                  ₱{usual.price}
+                                </span>
+                                <div className="text-[11px] text-[#7C6656] mt-1 bg-[#FAF7F2] p-1.5 rounded-lg border border-[#EFE7DD]">
+                                  <span>
+                                    {usual.customization?.temperature || 'Iced'} •{' '}
+                                    {usual.customization?.size ? usual.customization.size.split(' ')[0] : '16oz'}
+                                  </span>
+                                  {usual.customization?.sweetness && (
+                                    <span> • {usual.customization.sweetness} Sugar</span>
+                                  )}
+                                  {usual.customization?.milkType && usual.customization.milkType !== 'Whole Milk' && (
+                                    <span> • {usual.customization.milkType.split(' ')[0]}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="mt-3 pt-3 border-t border-[#F0E6DB] flex items-center justify-between gap-2">
+                              <span className="text-[10px] text-[#9E8B7A]">
+                                Saved {usual.savedAt}
+                              </span>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  orderUsual(usual);
+                                  onClose();
+                                  onShowToast(`☕ Added your Usual (${usual.name}) to cart!`);
+                                }}
+                                className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-[#8C5332] hover:from-rose-500 hover:to-[#6F3E22] text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
+                              >
+                                <Zap className="w-3.5 h-3.5 text-amber-300" />
+                                <span>1-Click Order (₱{usual.price})</span>
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

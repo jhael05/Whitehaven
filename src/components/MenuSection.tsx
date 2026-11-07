@@ -1,7 +1,17 @@
 import React, { useState } from 'react';
 import { MENU_ITEMS } from '../data/menuData';
 import { MenuItem, Category } from '../types/cafe';
-import { Search, Heart, Plus, Coffee, SlidersHorizontal } from 'lucide-react';
+import { useCart } from '../context/CartContext';
+import {
+  Search,
+  Heart,
+  Plus,
+  Coffee,
+  SlidersHorizontal,
+  Sparkles,
+  Zap,
+  ShoppingBag,
+} from 'lucide-react';
 
 interface MenuSectionProps {
   onSelectItem: (item: MenuItem) => void;
@@ -9,6 +19,7 @@ interface MenuSectionProps {
 
 const CATEGORIES: Category[] = [
   'All',
+  'My Usuals',
   'Coffee',
   'Non-Coffee',
   'Blended Frappes',
@@ -21,15 +32,23 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
   const [selectedCategory, setSelectedCategory] = useState<Category>('All');
   const [searchQuery, setSearchQuery] = useState('');
 
+  const { usualDrinks, isUsual, toggleUsualDrink, orderUsual } = useCart();
+
   const featuredItems = MENU_ITEMS.filter((item) => item.isFeatured);
 
   const filteredItems = MENU_ITEMS.filter((item) => {
     const matchesCategory =
-      selectedCategory === 'All' || item.category === selectedCategory;
+      selectedCategory === 'All'
+        ? true
+        : selectedCategory === 'My Usuals'
+        ? isUsual(item.id)
+        : item.category === selectedCategory;
+
     const matchesSearch =
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.tags?.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
+
     return matchesCategory && matchesSearch;
   });
 
@@ -55,20 +74,45 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
         <div className="mt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           {/* Categories */}
           <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-none">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setSelectedCategory(cat)}
-                className={`rounded-full px-4 py-2 text-xs font-semibold whitespace-nowrap transition-all border ${
-                  selectedCategory === cat
-                    ? 'bg-[#3D2517] text-[#FAF7F2] border-[#3D2517] shadow-sm'
-                    : 'bg-[#FAF7F2] text-[#5D4037] border-[#DECDBE] hover:bg-[#EFE7DD]'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+            {CATEGORIES.map((cat) => {
+              const isSelected = selectedCategory === cat;
+              const isUsualTab = cat === 'My Usuals';
+
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`rounded-full px-4 py-2 text-xs font-semibold whitespace-nowrap transition-all border flex items-center gap-1.5 cursor-pointer active:scale-95 ${
+                    isSelected
+                      ? isUsualTab
+                        ? 'bg-rose-600 text-white border-rose-600 shadow-md ring-2 ring-rose-300'
+                        : 'bg-[#3D2517] text-[#FAF7F2] border-[#3D2517] shadow-sm'
+                      : isUsualTab
+                      ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
+                      : 'bg-[#FAF7F2] text-[#5D4037] border-[#DECDBE] hover:bg-[#EFE7DD]'
+                  }`}
+                >
+                  {isUsualTab && (
+                    <Heart
+                      className={`w-3.5 h-3.5 ${
+                        isSelected ? 'fill-white text-white' : 'fill-rose-500 text-rose-500'
+                      }`}
+                    />
+                  )}
+                  <span>{cat}</span>
+                  {isUsualTab && (
+                    <span
+                      className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
+                        isSelected ? 'bg-white/20 text-white' : 'bg-rose-200 text-rose-800'
+                      }`}
+                    >
+                      {usualDrinks.length}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           {/* Search bar */}
@@ -84,7 +128,103 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
           </div>
         </div>
 
-        {/* Featured 4 Menu Items Showcase (Matching screenshot 858006246_2150021175868796_155987875129091131_n_43f3af50.png) */}
+        {/* Quick Shelf: Your Usual Drinks (Quick 1-Click Order) */}
+        {usualDrinks.length > 0 && selectedCategory !== 'My Usuals' && !searchQuery && (
+          <div className="mt-8 rounded-3xl bg-gradient-to-r from-rose-50/90 via-amber-50/80 to-[#FAF7F2] p-5 border-2 border-rose-200/80 shadow-sm animate-fade-in">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3.5">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-xs">
+                  <Heart className="w-4 h-4 fill-white" />
+                </div>
+                <div>
+                  <h3 className="font-serif-cafe text-base font-bold text-[#2C1810] flex items-center gap-1.5">
+                    <span>Your Usual Drinks</span>
+                    <span className="text-[10px] font-bold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full border border-rose-200">
+                      1-Click Order
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-[#7C6656]">
+                    Naka-heart ang mga ito para i-click mo nalang agad nang walang paligoy-ligoy!
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedCategory('My Usuals')}
+                className="text-xs font-bold text-rose-700 hover:text-rose-900 underline flex items-center gap-1 self-start sm:self-auto cursor-pointer"
+              >
+                <span>Tingnan Lahat ({usualDrinks.length})</span>
+              </button>
+            </div>
+
+            {/* Horizontal Scroll of Usual Drinks */}
+            <div className="flex items-center gap-3.5 overflow-x-auto pb-2 scrollbar-none">
+              {usualDrinks.map((usual) => (
+                <div
+                  key={usual.id}
+                  className="rounded-2xl bg-white border border-rose-200/90 p-3 shadow-xs hover:shadow-md transition-all shrink-0 w-64 flex flex-col justify-between group"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <img
+                      src={usual.image}
+                      alt={usual.name}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/assets/menu/spanish_latte.jpg';
+                      }}
+                      className="w-14 h-14 rounded-xl object-cover shrink-0 border border-[#D8C7B6]"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-1">
+                        <h4 className="font-serif-cafe text-xs font-bold text-[#2C1810] truncate group-hover:text-rose-700 transition-colors">
+                          {usual.name}
+                        </h4>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleUsualDrink({
+                              id: usual.menuItemId,
+                              name: usual.name,
+                              category: usual.category,
+                              image: usual.image,
+                              price: usual.price,
+                              description: '',
+                            });
+                          }}
+                          title="Remove from usuals"
+                          className="text-rose-400 hover:text-rose-600 p-0.5"
+                        >
+                          <Heart className="w-3.5 h-3.5 fill-rose-500" />
+                        </button>
+                      </div>
+                      <span className="text-xs font-black text-[#8C5332] block">
+                        ₱{usual.price}
+                      </span>
+                      <p className="text-[10px] text-[#7C6656] truncate mt-0.5">
+                        {usual.customization?.temperature || 'Iced'} •{' '}
+                        {usual.customization?.size ? usual.customization.size.split(' ')[0] : '16oz'}
+                        {usual.customization?.sweetness && ` • ${usual.customization.sweetness}`}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 1-Click Quick Order Button */}
+                  <button
+                    type="button"
+                    onClick={() => orderUsual(usual)}
+                    className="mt-2.5 w-full rounded-xl bg-gradient-to-r from-rose-600 to-[#8C5332] hover:from-rose-500 hover:to-[#6F3E22] text-white py-2 px-3 text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+                  >
+                    <Zap className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Quick 1-Click Add (₱{usual.price})</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Featured 4 Menu Items Showcase */}
         {selectedCategory === 'All' && !searchQuery && (
           <div className="mt-10 mb-6">
             <div className="flex items-center justify-between mb-4">
@@ -98,87 +238,16 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {featuredItems.slice(0, 4).map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => onSelectItem(item)}
-                  className="rounded-3xl bg-[#D9C5B2] hover:bg-[#CFB9A4] p-5 shadow-md hover:shadow-2xl hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 ease-out flex flex-col items-center text-center cursor-pointer border border-[#C7B19C] hover:border-[#C29B63]/60 group relative overflow-hidden"
-                >
-                  <div className="relative w-44 h-44 rounded-2xl overflow-hidden bg-white shadow-sm mb-4">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/assets/menu/spanish_latte.jpg';
-                      }}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-                    />
-                    <div className="absolute top-2 left-2 rounded-full bg-[#2C1810]/85 backdrop-blur-md px-2.5 py-0.5 text-[9px] font-bold tracking-widest uppercase text-amber-200 border border-amber-300/30">
-                      House Special
-                    </div>
-                    <div className="absolute top-2 right-2 rounded-full bg-black/50 p-1.5 text-white backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                      <SlidersHorizontal className="w-3.5 h-3.5" />
-                    </div>
-                  </div>
+              {featuredItems.slice(0, 4).map((item) => {
+                const favorited = isUsual(item.id);
 
-                  <h4 className="font-serif-cafe text-lg font-bold text-[#2C1810]">
-                    {item.name}
-                  </h4>
-                  <span className="mt-1 font-sans text-base font-bold text-[#3D2517]">
-                    ₱{item.price}
-                  </span>
-
-                  <p className="mt-2 text-xs text-[#4A2E1B] line-clamp-2">
-                    {item.description}
-                  </p>
-
-                  <button
-                    type="button"
-                    className="mt-4 w-full rounded-full bg-[#3D2517] hover:bg-[#2C1810] text-[#FAF7F2] py-2 px-4 text-xs font-semibold shadow transition-all duration-300 group-hover:shadow-md active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => onSelectItem(item)}
+                    className="rounded-3xl bg-[#D9C5B2] hover:bg-[#CFB9A4] p-5 shadow-md hover:shadow-2xl hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 ease-out flex flex-col items-center text-center cursor-pointer border border-[#C7B19C] hover:border-[#C29B63]/60 group relative overflow-hidden"
                   >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Customize & Order</span>
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Full Menu Grid */}
-        <div className="mt-8">
-          {selectedCategory === 'All' && !searchQuery && (
-            <h3 className="font-serif-cafe text-xl font-bold text-[#2C1810] mb-4">
-              All Handcrafted Drinks & Bites
-            </h3>
-          )}
-
-          {filteredItems.length === 0 ? (
-            <div className="text-center py-16 bg-[#FAF7F2] rounded-3xl border border-[#DECDBE]">
-              <p className="text-sm font-semibold text-[#5D4037]">
-                No menu items match &quot;{searchQuery}&quot;
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchQuery('');
-                  setSelectedCategory('All');
-                }}
-                className="mt-3 text-xs text-[#8C5332] font-bold underline"
-              >
-                Reset Search Filters
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredItems.map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => onSelectItem(item)}
-                  className="rounded-3xl bg-[#FAF7F2] border border-[#DECDBE] hover:border-[#C29B63]/70 overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 ease-out flex flex-col justify-between cursor-pointer group"
-                >
-                  <div>
-                    <div className="relative h-48 w-full bg-[#EFE7DD] overflow-hidden">
+                    <div className="relative w-44 h-44 rounded-2xl overflow-hidden bg-white shadow-sm mb-4">
                       <img
                         src={item.image}
                         alt={item.name}
@@ -187,42 +256,219 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem }) => {
                         }}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                       />
-                      {item.isBestSeller && (
-                        <span className="absolute top-3 left-3 rounded-full bg-[#2C1810]/90 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-bold text-amber-200 border border-amber-300/40 shadow-md">
-                          Best Seller
-                        </span>
-                      )}
-                      <span className="absolute bottom-3 right-3 rounded-full bg-black/65 backdrop-blur-md px-2.5 py-1 text-xs font-bold text-white shadow-md">
-                        ₱{item.price}
-                      </span>
+                      <div className="absolute top-2 left-2 rounded-full bg-[#2C1810]/85 backdrop-blur-md px-2.5 py-0.5 text-[9px] font-bold tracking-widest uppercase text-amber-200 border border-amber-300/30">
+                        House Special
+                      </div>
+
+                      {/* Heart / Usual Drink Toggle Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleUsualDrink(item);
+                        }}
+                        title={favorited ? 'Naka-save sa Usual Drinks' : 'I-heart bilang Usual Drink'}
+                        className={`absolute top-2 right-2 rounded-full p-2 backdrop-blur-md transition-all shadow-md active:scale-90 z-10 cursor-pointer ${
+                          favorited
+                            ? 'bg-rose-500 text-white scale-105'
+                            : 'bg-black/40 hover:bg-black/60 text-white hover:text-rose-300'
+                        }`}
+                      >
+                        <Heart className={`w-3.5 h-3.5 ${favorited ? 'fill-white' : ''}`} />
+                      </button>
                     </div>
 
-                    <div className="p-4 space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-[#8C5332]">
-                          {item.category}
-                        </span>
-                      </div>
-                      <h4 className="font-serif-cafe text-lg font-bold text-[#2C1810] leading-snug group-hover:text-[#8C5332] transition-colors">
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="font-serif-cafe text-lg font-bold text-[#2C1810]">
                         {item.name}
                       </h4>
-                      <p className="text-xs text-[#6F4E37] line-clamp-2 leading-relaxed">
-                        {item.description}
-                      </p>
+                      {favorited && (
+                        <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.2 rounded-full border border-rose-200">
+                          My Usual
+                        </span>
+                      )}
                     </div>
-                  </div>
 
-                  <div className="p-4 pt-0">
+                    <span className="mt-1 font-sans text-base font-bold text-[#3D2517]">
+                      ₱{item.price}
+                    </span>
+
+                    <p className="mt-2 text-xs text-[#4A2E1B] line-clamp-2">
+                      {item.description}
+                    </p>
+
                     <button
                       type="button"
-                      className="w-full rounded-full bg-[#EFE7DD] hover:bg-[#3D2517] hover:text-white text-[#3D2517] py-2 px-3 text-xs font-semibold transition-all duration-300 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="mt-4 w-full rounded-full bg-[#3D2517] hover:bg-[#2C1810] text-[#FAF7F2] py-2 px-4 text-xs font-semibold shadow transition-all duration-300 group-hover:shadow-md active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Customize & Order</span>
                     </button>
                   </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Full Menu Grid or My Usuals Grid */}
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-serif-cafe text-xl font-bold text-[#2C1810]">
+              {selectedCategory === 'My Usuals'
+                ? `❤️ Your Usual Drinks (${filteredItems.length})`
+                : selectedCategory === 'All' && !searchQuery
+                ? 'All Handcrafted Drinks & Bites'
+                : `${selectedCategory} (${filteredItems.length})`}
+            </h3>
+            {selectedCategory === 'My Usuals' && (
+              <span className="text-xs text-[#7C6656]">
+                I-click lang ang alinman para agad ma-order ang iyong paborito!
+              </span>
+            )}
+          </div>
+
+          {filteredItems.length === 0 ? (
+            <div className="text-center py-16 bg-[#FAF7F2] rounded-3xl border border-[#DECDBE]">
+              {selectedCategory === 'My Usuals' ? (
+                <div className="max-w-md mx-auto space-y-3 px-4">
+                  <div className="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+                    <Heart className="w-7 h-7 text-rose-500" />
+                  </div>
+                  <h4 className="font-serif-cafe text-lg font-bold text-[#2C1810]">
+                    Wala Pang Naka-heart na Usual Drinks
+                  </h4>
+                  <p className="text-xs text-[#7C6656] leading-relaxed">
+                    Pindutin ang ❤️ Heart icon sa kahit anong menu item o sa iyong Order History para lumabas dito ang iyong Usual Drinks at ma-order mo sa isang click lang!
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCategory('All')}
+                    className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[#3D2517] text-white px-5 py-2 text-xs font-bold hover:bg-[#2C1810] transition-colors cursor-pointer"
+                  >
+                    <span>Mag-browse sa Buong Menu</span>
+                  </button>
                 </div>
-              ))}
+              ) : (
+                <div>
+                  <p className="text-sm font-semibold text-[#5D4037]">
+                    No menu items match &quot;{searchQuery}&quot;
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSelectedCategory('All');
+                    }}
+                    className="mt-3 text-xs text-[#8C5332] font-bold underline cursor-pointer"
+                  >
+                    Reset Search Filters
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredItems.map((item) => {
+                const favorited = isUsual(item.id);
+                const matchingUsual = usualDrinks.find((u) => u.menuItemId === item.id);
+
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => onSelectItem(item)}
+                    className="rounded-3xl bg-[#FAF7F2] border border-[#DECDBE] hover:border-[#C29B63]/70 overflow-hidden shadow-sm hover:shadow-xl hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 ease-out flex flex-col justify-between cursor-pointer group relative"
+                  >
+                    <div>
+                      <div className="relative h-48 w-full bg-[#EFE7DD] overflow-hidden">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/assets/menu/spanish_latte.jpg';
+                          }}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                        />
+
+                        {/* Top Badges */}
+                        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+                          {item.isBestSeller && (
+                            <span className="rounded-full bg-[#2C1810]/90 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-bold text-amber-200 border border-amber-300/40 shadow-md">
+                              Best Seller
+                            </span>
+                          )}
+                          {favorited && (
+                            <span className="rounded-full bg-rose-600/90 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-bold text-white shadow-md flex items-center gap-1">
+                              <Heart className="w-3 h-3 fill-white" />
+                              <span>My Usual</span>
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Heart / Usual Drink Toggle Button */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleUsualDrink(item);
+                          }}
+                          title={favorited ? 'Naka-save sa Usual Drinks' : 'I-heart bilang Usual Drink'}
+                          className={`absolute top-3 right-3 rounded-full p-2 backdrop-blur-md transition-all shadow-md active:scale-90 z-10 cursor-pointer ${
+                            favorited
+                              ? 'bg-rose-500 text-white scale-105 ring-2 ring-rose-300'
+                              : 'bg-black/40 hover:bg-black/60 text-white hover:text-rose-300'
+                          }`}
+                        >
+                          <Heart className={`w-4 h-4 ${favorited ? 'fill-white' : ''}`} />
+                        </button>
+
+                        <span className="absolute bottom-3 right-3 rounded-full bg-black/65 backdrop-blur-md px-2.5 py-1 text-xs font-bold text-white shadow-md">
+                          ₱{item.price}
+                        </span>
+                      </div>
+
+                      <div className="p-4 space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#8C5332]">
+                            {item.category}
+                          </span>
+                        </div>
+                        <h4 className="font-serif-cafe text-lg font-bold text-[#2C1810] leading-snug group-hover:text-[#8C5332] transition-colors">
+                          {item.name}
+                        </h4>
+                        <p className="text-xs text-[#6F4E37] line-clamp-2 leading-relaxed">
+                          {item.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="p-4 pt-0 space-y-2">
+                      {/* If favorited, provide 1-click Quick Add button alongside Customize */}
+                      {favorited && matchingUsual && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            orderUsual(matchingUsual);
+                          }}
+                          className="w-full rounded-full bg-gradient-to-r from-rose-600 to-[#8C5332] hover:from-rose-500 hover:to-[#6F3E22] text-white py-2 px-3 text-xs font-bold transition-all duration-300 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                        >
+                          <Zap className="w-3.5 h-3.5 text-amber-300" />
+                          <span>1-Click Order My Usual (₱{item.price})</span>
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        className="w-full rounded-full bg-[#EFE7DD] hover:bg-[#3D2517] hover:text-white text-[#3D2517] py-2 px-3 text-xs font-semibold transition-all duration-300 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Customize & Order</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

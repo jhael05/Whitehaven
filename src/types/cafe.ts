@@ -1,11 +1,30 @@
 export type Category =
   | 'All'
+  | 'My Usuals'
   | 'Coffee'
   | 'Non-Coffee'
   | 'Blended Frappes'
   | 'Soda & Slushies'
   | 'Rice Meals & Sandwich'
   | 'Pasta & Snacks';
+
+export interface OrderRating {
+  rating: number; // 1 to 5 stars
+  feedback?: string;
+  tags?: string[];
+  ratedAt: string;
+}
+
+export interface UsualDrink {
+  id: string; // unique ID
+  menuItemId: string;
+  name: string;
+  category: Category;
+  image: string;
+  price: number;
+  customization?: Customization;
+  savedAt: string;
+}
 
 export interface MenuItem {
   id: string;
@@ -82,6 +101,7 @@ export interface Order {
   };
   status: OrderStatus;
   statusUpdatedAt: string;
+  rating?: OrderRating;
 }
 
 export type CafeThemeId = 'warm-classic' | 'garden-patio' | 'midnight-espresso' | 'vanilla-oat' | 'autumn-cinnamon';

@@ -372,6 +372,7 @@ const MainAppContent: React.FC = () => {
           setIsOrdersHistoryOpen(false);
           setActiveOrderModal(ord);
         }}
+        onShowToast={showToast}
       />
 
       {/* Social Links Modal (Direct visit or paste custom links) */}

@@ -1,5 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { MenuItem, Customization, CartItem, OrderType, PaymentMethod, Order, OrderStatus, DeliveryDetails } from '../types/cafe';
+import {
+  MenuItem,
+  Customization,
+  CartItem,
+  OrderType,
+  PaymentMethod,
+  Order,
+  OrderStatus,
+  DeliveryDetails,
+  OrderRating,
+  UsualDrink,
+} from '../types/cafe';
 import confetti from 'canvas-confetti';
 
 export interface OrderNotification {
@@ -60,6 +71,12 @@ interface CartContextType {
     };
   }) => Order;
   reorder: (order: Order) => void;
+  rateOrder: (orderId: string, rating: number, feedback?: string, tags?: string[]) => void;
+  usualDrinks: UsualDrink[];
+  isUsual: (menuItemId: string) => boolean;
+  toggleUsualDrink: (menuItem: MenuItem, customization?: Customization) => { added: boolean; drink: UsualDrink };
+  removeUsualDrink: (usualId: string) => void;
+  orderUsual: (usual: UsualDrink) => void;
   activeOrderModal: Order | null;
   setActiveOrderModal: (order: Order | null) => void;
   orderNotification: OrderNotification | null;
@@ -71,6 +88,16 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const CART_STORAGE_KEY = 'white_haven_cart_items';
 const ORDERS_STORAGE_KEY = 'white_haven_orders_history';
+const USUAL_DRINKS_STORAGE_KEY = 'white_haven_usual_drinks';
+
+const DEFAULT_CUSTOMIZATION: Customization = {
+  temperature: 'Iced',
+  size: 'Regular (16oz)',
+  sweetness: '100%',
+  iceLevel: 'Regular Ice',
+  milkType: 'Whole Milk',
+  addOns: [],
+};
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>(() => {
@@ -590,6 +617,153 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
+  const [usualDrinks, setUsualDrinks] = useState<UsualDrink[]>(() => {
+    try {
+      const saved = localStorage.getItem(USUAL_DRINKS_STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+      // Pre-seed with Spanish Latte as an initial favorite so users can see how it works immediately!
+      return [
+        {
+          id: 'usual-spanish-latte',
+          menuItemId: 'c5',
+          name: 'Spanish Latte',
+          category: 'Coffee',
+          image: '/assets/menu/spanish_latte.jpg',
+          price: 160,
+          customization: {
+            temperature: 'Iced',
+            size: 'Regular (16oz)',
+            sweetness: '75%',
+            iceLevel: 'Regular Ice',
+            milkType: 'Whole Milk',
+            addOns: [],
+          },
+          savedAt: 'Cafe Signature',
+        },
+      ];
+    } catch {
+      return [];
+    }
+  });
+
+  const rateOrder = (orderId: string, rating: number, feedback?: string, tags?: string[]) => {
+    const now = new Date();
+    const ratedAt = `${now.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })} at ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    setOrders(prev => {
+      const updated = prev.map(o =>
+        o.id === orderId
+          ? {
+              ...o,
+              rating: {
+                rating,
+                feedback: feedback?.trim() || undefined,
+                tags: tags && tags.length > 0 ? tags : undefined,
+                ratedAt,
+              },
+            }
+          : o
+      );
+      try {
+        localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(updated));
+      } catch {
+        // ignore
+      }
+      return updated;
+    });
+
+    try {
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.5 },
+        colors: ['#FFB800', '#F59E0B', '#8C5332', '#FAF7F2'],
+      });
+    } catch {
+      // ignore
+    }
+  };
+
+  const isUsual = (menuItemId: string) => {
+    return usualDrinks.some(u => u.menuItemId === menuItemId);
+  };
+
+  const toggleUsualDrink = (menuItem: MenuItem, customization?: Customization) => {
+    const existingIndex = usualDrinks.findIndex(u => u.menuItemId === menuItem.id);
+    if (existingIndex >= 0) {
+      const removed = usualDrinks[existingIndex];
+      const updated = usualDrinks.filter((_, idx) => idx !== existingIndex);
+      setUsualDrinks(updated);
+      try {
+        localStorage.setItem(USUAL_DRINKS_STORAGE_KEY, JSON.stringify(updated));
+      } catch {
+        // ignore
+      }
+      return { added: false, drink: removed };
+    } else {
+      const newUsual: UsualDrink = {
+        id: `usual-${menuItem.id}-${Date.now()}`,
+        menuItemId: menuItem.id,
+        name: menuItem.name,
+        category: menuItem.category,
+        image: menuItem.image,
+        price: menuItem.price,
+        customization: customization || DEFAULT_CUSTOMIZATION,
+        savedAt: new Date().toLocaleDateString([], { month: 'short', day: 'numeric' }),
+      };
+      const updated = [newUsual, ...usualDrinks];
+      setUsualDrinks(updated);
+      try {
+        localStorage.setItem(USUAL_DRINKS_STORAGE_KEY, JSON.stringify(updated));
+      } catch {
+        // ignore
+      }
+      try {
+        confetti({
+          particleCount: 65,
+          spread: 60,
+          origin: { y: 0.65 },
+          colors: ['#E11D48', '#FB7185', '#8C5332', '#F5ECE2'],
+        });
+      } catch {
+        // ignore
+      }
+      return { added: true, drink: newUsual };
+    }
+  };
+
+  const removeUsualDrink = (usualId: string) => {
+    const updated = usualDrinks.filter(u => u.id !== usualId && u.menuItemId !== usualId);
+    setUsualDrinks(updated);
+    try {
+      localStorage.setItem(USUAL_DRINKS_STORAGE_KEY, JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+  };
+
+  const orderUsual = (usual: UsualDrink) => {
+    const targetMenuItem: MenuItem = {
+      id: usual.menuItemId,
+      name: usual.name,
+      description: 'Customer Usual Signature Recipe',
+      price: usual.price,
+      category: usual.category,
+      image: usual.image,
+      canCustomize: true,
+    };
+    addToCart(targetMenuItem, usual.customization || DEFAULT_CUSTOMIZATION, 1);
+    try {
+      confetti({
+        particleCount: 50,
+        spread: 60,
+        origin: { y: 0.6 },
+        colors: ['#8C5332', '#F5ECE2', '#D4AF37'],
+      });
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -627,6 +801,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         orders,
         createOrder,
         reorder,
+        rateOrder,
+        usualDrinks,
+        isUsual,
+        toggleUsualDrink,
+        removeUsualDrink,
+        orderUsual,
         activeOrderModal,
         setActiveOrderModal,
         orderNotification,

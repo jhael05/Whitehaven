@@ -25,6 +25,7 @@ import {
   Bike,
   MapPin,
   Navigation,
+  Sparkles,
 } from 'lucide-react';
 import { GCashLogo, MayaLogo, CardsLogo, CashLogo } from './PaymentLogos';
 import { CafeLogo } from './CafeLogo';
@@ -209,7 +210,53 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
   }, [user, isOpen]);
 
-  if (!isOpen || items.length === 0) return null;
+  if (!isOpen) return null;
+
+  if (items.length === 0) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div className="relative w-full max-w-md rounded-3xl bg-[#FAF7F2] p-7 shadow-2xl border border-[#D8C7B6] text-center">
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 rounded-full bg-black/5 p-2 text-[#5D4037] hover:bg-black/10 transition-colors cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <div className="w-14 h-14 rounded-full bg-[#EFE7DD] flex items-center justify-center text-[#8C5332] mx-auto mb-3">
+            <ShoppingBag className="w-7 h-7" />
+          </div>
+          <h3 className="font-serif-cafe text-xl font-bold text-[#2C1810]">
+            Your Cart is Empty
+          </h3>
+          <p className="text-xs text-[#7C6656] mt-1.5 max-w-xs mx-auto leading-relaxed">
+            Please add items to your cart or choose your free loyalty reward drink before proceeding with checkout.
+          </p>
+          <div className="mt-5 space-y-2.5">
+            {(user?.stampsCount || 0) >= 8 && onOpenFreeDrinkPicker && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenFreeDrinkPicker();
+                }}
+                className="w-full rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 py-3 px-5 text-xs font-black text-[#2C1810] shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+              >
+                <Gift className="w-4 h-4" />
+                <span>Claim Free Drink Reward (8 Stamps)</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full rounded-full bg-[#3D2517] text-white py-2.5 px-5 text-xs font-bold hover:bg-[#2C1810] transition-colors cursor-pointer"
+            >
+              Browse Menu
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // STRICT LOGIN GUARD: Ordering is forbidden without logging in or signing up
   if (!isAuthenticated || !user) {
@@ -1336,7 +1383,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       {item.quantity}x {item.menuItem.name}
                     </span>
                     <span className="text-[11px] text-[#7C6656] ml-1.5">
-                      ({item.customization.temperature}, {item.customization.size.split(' ')[0]})
+                      ({item.customization?.temperature || 'Standard'}, {item.customization?.size ? item.customization.size.split(' ')[0] : '16oz'})
                     </span>
                   </div>
                   <span className="font-semibold text-[#2C1810]">₱{item.totalPrice}</span>

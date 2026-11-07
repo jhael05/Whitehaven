@@ -22,6 +22,7 @@ import { OrdersHistoryModal } from './components/OrdersHistoryModal';
 import { SocialLinksModal } from './components/SocialLinksModal';
 import { LoyaltyStampBanner } from './components/LoyaltyStampBanner';
 import { FreeDrinkRewardModal } from './components/FreeDrinkRewardModal';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 import { MenuItem, Order } from './types/cafe';
 import { CAFE_INFO } from './data/menuData';
@@ -403,12 +404,14 @@ const MainAppContent: React.FC = () => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <ThemeProvider>
-        <CartProvider>
-          <MainAppContent />
-        </CartProvider>
-      </ThemeProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ThemeProvider>
+          <CartProvider>
+            <MainAppContent />
+          </CartProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

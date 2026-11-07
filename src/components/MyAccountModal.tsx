@@ -203,7 +203,7 @@ export const MyAccountModal: React.FC<MyAccountModalProps> = ({
     }
   };
 
-  const stampsCount = user.stampsCount || 0;
+  const stampsCount = user?.stampsCount || 0;
   const isRewardUnlocked = stampsCount >= 8;
 
   return (

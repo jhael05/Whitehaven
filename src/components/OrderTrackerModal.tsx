@@ -325,11 +325,12 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
                     <span>₱{item.totalPrice}</span>
                   </div>
                   <div className="text-[10px] text-[#7C6656]">
-                    {item.customization.temperature} • {item.customization.size.split(' ')[0]} •{' '}
-                    {item.customization.sweetness} Sugar
-                    {item.customization.milkType !== 'Whole Milk' &&
+                    {item.customization?.temperature || 'Standard'} •{' '}
+                    {item.customization?.size ? item.customization.size.split(' ')[0] : '16oz'}
+                    {item.customization?.sweetness && ` • ${item.customization.sweetness} Sugar`}
+                    {item.customization?.milkType && item.customization.milkType !== 'Whole Milk' &&
                       ` • ${item.customization.milkType.split(' ')[0]}`}
-                    {item.customization.addOns.length > 0 &&
+                    {item.customization?.addOns && item.customization.addOns.length > 0 &&
                       ` • +${item.customization.addOns.map((a) => a.split(' (')[0]).join(', ')}`}
                   </div>
                 </div>

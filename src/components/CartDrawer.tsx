@@ -15,6 +15,7 @@ import {
   Award,
   CheckCircle2,
   Check,
+  Sparkles,
 } from 'lucide-react';
 
 interface CartDrawerProps {
@@ -254,20 +255,20 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       {/* Customization Badges */}
                       <div className="mt-1 flex flex-wrap gap-1 text-[10px] text-[#7C6656]">
                         <span className="rounded bg-[#F0E6DB] px-1.5 py-0.5">
-                          {item.customization.temperature}
+                          {item.customization?.temperature || 'Standard'}
                         </span>
                         <span className="rounded bg-[#F0E6DB] px-1.5 py-0.5">
-                          {item.customization.size.split(' ')[0]}
+                          {item.customization?.size ? item.customization.size.split(' ')[0] : '16oz'}
                         </span>
                         <span className="rounded bg-[#F0E6DB] px-1.5 py-0.5">
-                          {item.customization.sweetness} Sugar
+                          {item.customization?.sweetness || '100%'} Sugar
                         </span>
-                        {item.customization.milkType !== 'Whole Milk' && (
+                        {item.customization?.milkType && item.customization.milkType !== 'Whole Milk' && (
                           <span className="rounded bg-[#F0E6DB] px-1.5 py-0.5">
                             {item.customization.milkType.split(' ')[0]}
                           </span>
                         )}
-                        {item.customization.addOns.map((addon) => (
+                        {(item.customization?.addOns || []).map((addon) => (
                           <span
                             key={addon}
                             className="rounded bg-[#FAF0E6] text-[#8C5332] px-1.5 py-0.5 font-medium"

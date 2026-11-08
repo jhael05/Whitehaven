@@ -312,26 +312,61 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
 
           {/* Receipt Items */}
           <div className="rounded-2xl border border-[#DECDBE] bg-white p-4">
-            <div className="text-xs font-bold text-[#5D4037] uppercase tracking-wider mb-2">
-              Receipt Items
+            <div className="text-xs font-bold text-[#5D4037] uppercase tracking-wider mb-3 flex items-center justify-between">
+              <span>Your Coffee Order</span>
+              <span className="text-[11px] text-[#8C5332] font-semibold">{order.items.length} items</span>
             </div>
-            <div className="space-y-2 divide-y divide-[#F5ECE2]">
+            <div className="space-y-3 divide-y divide-[#F5ECE2]">
               {order.items.map((item) => (
-                <div key={item.cartItemId} className="pt-2 first:pt-0 text-xs">
-                  <div className="flex justify-between font-semibold text-[#2C1810]">
-                    <span>
-                      {item.quantity}x {item.menuItem.name}
+                <div key={item.cartItemId} className="pt-3 first:pt-0 flex items-start sm:items-center gap-3.5">
+                  {/* Generous Coffee View */}
+                  <div className="relative shrink-0">
+                    <img
+                      src={item.menuItem.image}
+                      alt={item.menuItem.name}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/assets/menu/spanish_latte.jpg';
+                      }}
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shrink-0 border-2 border-[#D8C7B6] shadow-2xs bg-[#FAF7F2]"
+                    />
+                    <span className="absolute -bottom-1 -right-1 bg-[#3D2517] text-amber-200 border border-[#C29B63]/60 text-[10px] font-bold px-1.5 py-0.2 rounded-full shadow-xs">
+                      {item.quantity}x
                     </span>
-                    <span>₱{item.totalPrice}</span>
                   </div>
-                  <div className="text-[10px] text-[#7C6656]">
-                    {item.customization?.temperature || 'Standard'} •{' '}
-                    {item.customization?.size ? item.customization.size.split(' ')[0] : '16oz'}
-                    {item.customization?.sweetness && ` • ${item.customization.sweetness} Sugar`}
-                    {item.customization?.milkType && item.customization.milkType !== 'Whole Milk' &&
-                      ` • ${item.customization.milkType.split(' ')[0]}`}
-                    {item.customization?.addOns && item.customization.addOns.length > 0 &&
-                      ` • +${item.customization.addOns.map((a) => a.split(' (')[0]).join(', ')}`}
+
+                  {/* Coffee Details */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <h4 className="font-serif-cafe font-bold text-sm sm:text-base text-[#2C1810]">
+                        {item.menuItem.name}
+                      </h4>
+                      <span className="text-sm font-black text-[#8C5332] shrink-0">₱{item.totalPrice}</span>
+                    </div>
+
+                    {/* Customization Chips */}
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                      <span className="bg-[#FAF7F2] border border-[#DECDBE] text-[#5D4037] text-[10px] font-medium px-2 py-0.5 rounded-md">
+                        {item.customization?.temperature === 'Hot' ? '☕ Hot' : '🧊 Iced'}
+                      </span>
+                      <span className="bg-[#FAF7F2] border border-[#DECDBE] text-[#5D4037] text-[10px] font-medium px-2 py-0.5 rounded-md">
+                        {item.customization?.size ? item.customization.size.split(' ')[0] : '16oz'}
+                      </span>
+                      {item.customization?.sweetness && (
+                        <span className="bg-[#FAF7F2] border border-[#DECDBE] text-[#5D4037] text-[10px] font-medium px-2 py-0.5 rounded-md">
+                          {item.customization.sweetness} Sugar
+                        </span>
+                      )}
+                      {item.customization?.milkType && item.customization.milkType !== 'Whole Milk' && (
+                        <span className="bg-[#FAF7F2] border border-[#DECDBE] text-[#5D4037] text-[10px] font-medium px-2 py-0.5 rounded-md">
+                          {item.customization.milkType.split(' ')[0]}
+                        </span>
+                      )}
+                      {item.customization?.addOns && item.customization.addOns.length > 0 && (
+                        <span className="bg-amber-100/70 border border-amber-300 text-[#8C5332] text-[10px] font-semibold px-2 py-0.5 rounded-md">
+                          +{item.customization.addOns.map((a) => a.split(' (')[0]).join(', ')}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}

@@ -318,11 +318,11 @@ export const OrdersHistoryModal: React.FC<OrdersHistoryModalProps> = ({
                         {combo.title}
                       </h4>
 
-                      <div className="my-2 space-y-1">
+                      <div className="my-2.5 space-y-1.5">
                         {combo.items.map((ci, idx) => (
                           <div
                             key={idx}
-                            className="flex items-center gap-2 bg-[#FAF7F2] p-1.5 rounded-lg border border-[#F0E6DB] text-[11px]"
+                            className="flex items-center gap-3 bg-[#FAF7F2] p-2 rounded-xl border border-[#F0E6DB]"
                           >
                             <img
                               src={ci.menuItem.image}
@@ -330,17 +330,17 @@ export const OrdersHistoryModal: React.FC<OrdersHistoryModalProps> = ({
                               onError={(e) => {
                                 (e.target as HTMLImageElement).src = '/assets/menu/spanish_latte.jpg';
                               }}
-                              className="w-7 h-7 rounded-md object-cover shrink-0 border border-[#D8C7B6]"
+                              className="w-12 h-12 rounded-xl object-cover shrink-0 border border-[#D8C7B6] shadow-2xs"
                             />
                             <div className="min-w-0 flex-1 truncate">
-                              <span className="font-bold text-[#2C1810]">
+                              <span className="font-bold text-xs text-[#2C1810] block truncate font-serif-cafe">
                                 {ci.quantity}x {ci.menuItem.name}
                               </span>
-                              <span className="text-[10px] text-[#7C6656] block truncate">
+                              <span className="text-[11px] text-[#7C6656] block truncate mt-0.5">
                                 {ci.customization?.temperature || 'Iced'} • {ci.customization?.size?.split(' ')[0] || '16oz'}
                               </span>
                             </div>
-                            <span className="text-[10px] font-bold text-[#8C5332]">
+                            <span className="text-xs font-bold text-[#8C5332]">
                               ₱{ci.totalPrice}
                             </span>
                           </div>
@@ -469,50 +469,69 @@ export const OrdersHistoryModal: React.FC<OrdersHistoryModalProps> = ({
                       return (
                         <div
                           key={item.cartItemId}
-                          className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 rounded-2xl transition-all border ${
+                          className={`flex flex-col md:flex-row md:items-center justify-between gap-3.5 p-3.5 sm:p-4 rounded-2xl transition-all border ${
                             isItemPaired
-                              ? 'bg-amber-50/80 border-[#C29B63] ring-1 ring-[#C29B63]/50'
-                              : 'bg-[#FAF7F2] border-[#EFE7DD] hover:border-[#D8C7B6]'
+                              ? 'bg-amber-50/90 border-[#C29B63] ring-2 ring-[#C29B63]/40 shadow-xs'
+                              : 'bg-[#FAF7F2] border-[#EFE7DD] hover:border-[#D8C7B6] hover:bg-white'
                           }`}
                         >
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={item.menuItem.image}
-                              alt={item.menuItem.name}
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src =
-                                  '/assets/menu/spanish_latte.jpg';
-                              }}
-                              className="w-13 h-13 rounded-xl object-cover shrink-0 border border-[#D8C7B6]"
-                            />
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-xs text-[#2C1810]">
-                                  {item.quantity}x {item.menuItem.name}
-                                </span>
-                                <span className="text-xs font-semibold text-[#8C5332]">
+                          <div className="flex items-start sm:items-center gap-3.5 sm:gap-4 flex-1 min-w-0">
+                            {/* Prominent Coffee View with Quantity Badge */}
+                            <div className="relative shrink-0 group">
+                              <img
+                                src={item.menuItem.image}
+                                alt={item.menuItem.name}
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src =
+                                    '/assets/menu/spanish_latte.jpg';
+                                }}
+                                className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover shrink-0 border-2 border-[#D8C7B6] shadow-sm group-hover:scale-105 transition-transform duration-300 bg-[#EFE7DD]"
+                              />
+                              <span className="absolute -bottom-1 -right-1 bg-[#3D2517] text-amber-200 border border-[#C29B63]/60 text-[11px] font-bold px-2 py-0.5 rounded-full shadow-xs">
+                                {item.quantity}x
+                              </span>
+                            </div>
+
+                            {/* Coffee Details & Customization Badges */}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-baseline justify-between gap-1.5">
+                                <h4 className="font-serif-cafe font-bold text-sm sm:text-base text-[#2C1810]">
+                                  {item.menuItem.name}
+                                </h4>
+                                <span className="text-sm sm:text-base font-black text-[#8C5332]">
                                   ₱{item.totalPrice}
                                 </span>
                               </div>
-                              <p className="text-[10px] text-[#7C6656] mt-0.5">
-                                {item.customization?.temperature || 'Iced'} •{' '}
-                                {item.customization?.size
-                                  ? item.customization.size.split(' ')[0]
-                                  : '16oz'}
-                                {item.customization?.sweetness &&
-                                  ` • ${item.customization.sweetness} Sugar`}
-                                {item.customization?.milkType &&
-                                  item.customization.milkType !== 'Whole Milk' &&
-                                  ` • ${item.customization.milkType.split(' ')[0]}`}
-                                {item.customization?.addOns &&
-                                  item.customization.addOns.length > 0 &&
-                                  ` • +${item.customization.addOns.map((a) => a.split(' (')[0]).join(', ')}`}
-                              </p>
+
+                              {/* Customization Chips */}
+                              <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                                <span className="bg-white border border-[#DECDBE] text-[#5D4037] text-[11px] font-medium px-2 py-0.5 rounded-md shadow-2xs">
+                                  {item.customization?.temperature === 'Hot' ? '☕ Hot' : '🧊 Iced'}
+                                </span>
+                                <span className="bg-white border border-[#DECDBE] text-[#5D4037] text-[11px] font-medium px-2 py-0.5 rounded-md shadow-2xs">
+                                  {item.customization?.size ? item.customization.size.split(' ')[0] : '16oz'}
+                                </span>
+                                {item.customization?.sweetness && (
+                                  <span className="bg-white border border-[#DECDBE] text-[#5D4037] text-[11px] font-medium px-2 py-0.5 rounded-md shadow-2xs">
+                                    {item.customization.sweetness} Sugar
+                                  </span>
+                                )}
+                                {item.customization?.milkType && item.customization.milkType !== 'Whole Milk' && (
+                                  <span className="bg-white border border-[#DECDBE] text-[#5D4037] text-[11px] font-medium px-2 py-0.5 rounded-md shadow-2xs">
+                                    {item.customization.milkType.split(' ')[0]}
+                                  </span>
+                                )}
+                                {item.customization?.addOns && item.customization.addOns.length > 0 && (
+                                  <span className="bg-amber-100/70 border border-amber-300 text-[#8C5332] text-[11px] font-semibold px-2 py-0.5 rounded-md shadow-2xs">
+                                    +{item.customization.addOns.map((a) => a.split(' (')[0]).join(', ')}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
 
                           {/* Quick Actions for this item */}
-                          <div className="flex flex-wrap items-center gap-1.5 self-end sm:self-center">
+                          <div className="flex flex-wrap items-center gap-2 self-end md:self-center shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-[#EFE7DD] w-full md:w-auto justify-end">
                             {/* Pair in Combo Toggle */}
                             <button
                               type="button"
@@ -522,7 +541,7 @@ export const OrdersHistoryModal: React.FC<OrdersHistoryModalProps> = ({
                                   ? 'Selected for combo pairing (click to unselect)'
                                   : 'Click to select and pair with another drink or snack'
                               }
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer shadow-2xs active:scale-95 ${
+                              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold transition cursor-pointer shadow-2xs active:scale-95 ${
                                 isItemPaired
                                   ? 'bg-[#8C5332] text-white border border-[#8C5332] shadow-xs'
                                   : 'bg-white border border-[#DECDBE] text-[#6F4E37] hover:border-[#8C5332] hover:text-[#8C5332]'
@@ -550,7 +569,7 @@ export const OrdersHistoryModal: React.FC<OrdersHistoryModalProps> = ({
                                   ? 'Saved in your Usual Drinks'
                                   : 'Heart to save as your Usual Drink'
                               }
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer shadow-2xs active:scale-95 ${
+                              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold transition cursor-pointer shadow-2xs active:scale-95 ${
                                 isFavorited
                                   ? 'bg-rose-50 border border-rose-300 text-rose-600 hover:bg-rose-100'
                                   : 'bg-white border border-[#DECDBE] text-[#6F4E37] hover:border-rose-400 hover:text-rose-600'
@@ -571,9 +590,9 @@ export const OrdersHistoryModal: React.FC<OrdersHistoryModalProps> = ({
                               type="button"
                               onClick={() => handleQuickAddSingleItem(item)}
                               title="Order this drink again"
-                              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-[#3D2517] hover:bg-[#2C1810] text-[#FAF7F2] transition cursor-pointer shadow-2xs active:scale-95"
+                              className="flex items-center gap-1 px-3 py-2 rounded-full text-xs font-bold bg-[#3D2517] hover:bg-[#2C1810] text-[#FAF7F2] transition cursor-pointer shadow-2xs active:scale-95"
                             >
-                              <Plus className="w-3 h-3 text-amber-300" />
+                              <Plus className="w-3.5 h-3.5 text-amber-300" />
                               <span>Order</span>
                             </button>
                           </div>
@@ -878,7 +897,7 @@ export const OrdersHistoryModal: React.FC<OrdersHistoryModalProps> = ({
                 {selectedPairItems.map((p, idx) => (
                   <div
                     key={`${p.orderId}-${p.cartItemId}-${idx}`}
-                    className="flex items-center gap-1.5 bg-white/10 border border-white/15 px-2.5 py-1 rounded-full text-[11px] whitespace-nowrap"
+                    className="flex items-center gap-2 bg-white/15 border border-white/20 pl-1.5 pr-2.5 py-1 rounded-2xl text-xs whitespace-nowrap"
                   >
                     <img
                       src={p.item.menuItem.image}
@@ -886,13 +905,17 @@ export const OrdersHistoryModal: React.FC<OrdersHistoryModalProps> = ({
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = '/assets/menu/spanish_latte.jpg';
                       }}
-                      className="w-4 h-4 rounded-full object-cover"
+                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl object-cover border border-white/40 shrink-0"
                     />
-                    <span>{p.item.menuItem.name}</span>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-white leading-tight">{p.item.menuItem.name}</span>
+                      <span className="text-[10px] text-amber-200">₱{p.item.totalPrice}</span>
+                    </div>
                     <button
                       type="button"
                       onClick={() => handleTogglePairItem(p.orderId, p.item)}
-                      className="hover:text-rose-300 ml-0.5 cursor-pointer text-xs"
+                      className="hover:text-rose-300 ml-1 p-0.5 rounded-full hover:bg-white/10 cursor-pointer text-xs transition-colors"
+                      title="Remove item from pair"
                     >
                       ✕
                     </button>

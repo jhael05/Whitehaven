@@ -213,7 +213,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = '/assets/menu/spanish_latte.jpg';
                         }}
-                        className="h-16 w-16 rounded-xl object-cover shrink-0"
+                        className="h-20 w-20 rounded-2xl object-cover shrink-0 border-2 border-[#D8C7B6] shadow-2xs"
                       />
                       {item.isComplimentaryReward && (
                         <span className="absolute -top-1.5 -left-1.5 px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[8px] font-black uppercase tracking-wider shadow-xs">

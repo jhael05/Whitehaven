@@ -1375,18 +1375,34 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </span>
               )}
             </div>
-            <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
+            <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
               {items.map(item => (
-                <div key={item.cartItemId} className="flex items-center justify-between text-xs">
-                  <div className="truncate max-w-[70%]">
-                    <span className="font-semibold text-[#2C1810]">
-                      {item.quantity}x {item.menuItem.name}
-                    </span>
-                    <span className="text-[11px] text-[#7C6656] ml-1.5">
-                      ({item.customization?.temperature || 'Standard'}, {item.customization?.size ? item.customization.size.split(' ')[0] : '16oz'})
-                    </span>
+                <div key={item.cartItemId} className="flex items-center justify-between gap-3 text-xs bg-[#FAF7F2] p-2 rounded-xl border border-[#F0E6DB]">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="relative shrink-0">
+                      <img
+                        src={item.menuItem.image}
+                        alt={item.menuItem.name}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/assets/menu/spanish_latte.jpg';
+                        }}
+                        className="w-12 h-12 rounded-xl object-cover border border-[#D8C7B6] shrink-0"
+                      />
+                      <span className="absolute -bottom-1 -right-1 bg-[#3D2517] text-amber-200 text-[9px] font-bold px-1.5 py-0.2 rounded-full">
+                        {item.quantity}x
+                      </span>
+                    </div>
+                    <div className="min-w-0">
+                      <span className="font-bold text-[#2C1810] block truncate">
+                        {item.menuItem.name}
+                      </span>
+                      <span className="text-[10px] text-[#7C6656] block truncate">
+                        {item.customization?.temperature || 'Standard'} • {item.customization?.size ? item.customization.size.split(' ')[0] : '16oz'}
+                        {item.customization?.sweetness && ` • ${item.customization.sweetness}`}
+                      </span>
+                    </div>
                   </div>
-                  <span className="font-semibold text-[#2C1810]">₱{item.totalPrice}</span>
+                  <span className="font-bold text-[#8C5332] shrink-0">₱{item.totalPrice}</span>
                 </div>
               ))}
             </div>

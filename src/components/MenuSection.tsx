@@ -9,7 +9,7 @@ import {
   Coffee,
   SlidersHorizontal,
   Sparkles,
-  Zap,
+  Layers,
   ShoppingBag,
 } from 'lucide-react';
 
@@ -234,9 +234,9 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem, onOpenOr
                   >
                     <div>
                       <div className="flex items-center justify-between gap-1 pb-1 border-b border-amber-100">
-                        <span className="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full flex items-center gap-1">
-                          <Zap className="w-3 h-3 text-amber-600 fill-amber-500" />
-                          <span>1-Click Combo</span>
+                        <span className="text-[10px] font-bold bg-[#F5ECE2] text-[#8C5332] px-2 py-0.5 rounded-full flex items-center gap-1 border border-[#D8C7B6]">
+                          <Layers className="w-3 h-3 text-[#8C5332]" />
+                          <span>Combo Pair</span>
                         </span>
                         <button
                           type="button"
@@ -265,7 +265,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem, onOpenOr
                                 (e.target as HTMLImageElement).src =
                                   '/assets/menu/spanish_latte.jpg';
                               }}
-                              className="w-7 h-7 rounded-md object-cover shrink-0"
+                              className="w-7 h-7 rounded-md object-cover shrink-0 border border-[#D8C7B6]"
                             />
                             <div className="min-w-0 flex-1 truncate">
                               <span className="font-bold text-[#2C1810]">
@@ -287,10 +287,10 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem, onOpenOr
                     <button
                       type="button"
                       onClick={() => orderCombo(combo)}
-                      className="mt-2 w-full rounded-xl bg-gradient-to-r from-amber-600 to-[#8C5332] hover:from-amber-500 hover:to-[#6F3E22] text-white py-2 px-3 text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
+                      className="mt-2 w-full rounded-xl bg-gradient-to-r from-[#8C5332] to-[#A0633F] hover:from-[#724125] hover:to-[#8C5332] text-white py-2 px-3 text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
                     >
-                      <Zap className="w-3.5 h-3.5 text-amber-200 fill-amber-200" />
-                      <span>⚡ 1-Click Order Combo (₱{combo.totalPrice})</span>
+                      <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+                      <span>1-Click Order Pair (₱{combo.totalPrice})</span>
                     </button>
                   </div>
                 ))}
@@ -355,7 +355,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem, onOpenOr
                       onClick={() => orderUsual(usual)}
                       className="mt-2.5 w-full rounded-xl bg-gradient-to-r from-rose-600 to-[#8C5332] hover:from-rose-500 hover:to-[#6F3E22] text-white py-2 px-3 text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
                     >
-                      <Zap className="w-3.5 h-3.5 text-amber-300" />
+                      <Sparkles className="w-3.5 h-3.5 text-amber-200" />
                       <span>1-Click Order (₱{usual.price})</span>
                     </button>
                   </div>
@@ -474,21 +474,21 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem, onOpenOr
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-xs font-bold uppercase tracking-wider text-[#8C5332] flex items-center gap-1.5">
-                  <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
-                  <span>Saved 1-Click Combos ({usualCombos.length})</span>
+                  <Layers className="w-3.5 h-3.5 text-[#8C5332]" />
+                  <span>Saved Combo Pairs ({usualCombos.length})</span>
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {usualCombos.map((combo) => (
                   <div
                     key={combo.id}
-                    className="rounded-3xl bg-white border-2 border-amber-300 p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                    className="rounded-3xl bg-white border-2 border-[#D8C7B6] p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
                   >
                     <div>
-                      <div className="flex items-center justify-between pb-2 border-b border-amber-100">
-                        <span className="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full flex items-center gap-1">
-                          <Zap className="w-3 h-3 text-amber-600 fill-amber-500" />
-                          <span>1-Click Combo</span>
+                      <div className="flex items-center justify-between pb-2 border-b border-[#F0E6DB]">
+                        <span className="text-[10px] font-bold bg-[#F5ECE2] text-[#8C5332] px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-[#D8C7B6]">
+                          <Layers className="w-3 h-3 text-[#8C5332]" />
+                          <span>Combo Pair</span>
                         </span>
                         <button
                           type="button"
@@ -548,8 +548,8 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem, onOpenOr
                         onClick={() => orderCombo(combo)}
                         className="rounded-full bg-[#8C5332] hover:bg-[#6F3E22] text-white px-4 py-2 text-xs font-bold transition shadow-xs flex items-center gap-1.5 active:scale-95 cursor-pointer"
                       >
-                        <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
-                        <span>1-Click Order Combo</span>
+                        <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+                        <span>1-Click Order Pair</span>
                       </button>
                     </div>
                   </div>
@@ -705,7 +705,7 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onSelectItem, onOpenOr
                           }}
                           className="w-full rounded-full bg-gradient-to-r from-rose-600 to-[#8C5332] hover:from-rose-500 hover:to-[#6F3E22] text-white py-2 px-3 text-xs font-bold transition-all duration-300 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                         >
-                          <Zap className="w-3.5 h-3.5 text-amber-300" />
+                          <Sparkles className="w-3.5 h-3.5 text-amber-200" />
                           <span>1-Click Order My Usual (₱{item.price})</span>
                         </button>
                       )}

@@ -81,6 +81,7 @@ interface CartContextType {
   removeUsualDrink: (usualId: string) => void;
   orderUsual: (usual: UsualDrink) => void;
   saveOrderAsCombo: (order: Order, customTitle?: string, selectedItemIds?: string[]) => { combo: UsualCombo };
+  createCustomCombo: (title: string, items: UsualComboItem[], orderId?: string) => UsualCombo;
   removeUsualCombo: (comboId: string) => void;
   orderCombo: (combo: UsualCombo) => void;
   isOrderSavedAsCombo: (orderId: string) => boolean;
@@ -761,6 +762,50 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const createCustomCombo = (
+    title: string,
+    itemsToSave: UsualComboItem[],
+    orderId?: string
+  ): UsualCombo => {
+    const totalComboPrice = itemsToSave.reduce((acc, curr) => acc + curr.totalPrice, 0);
+    const resolvedTitle =
+      title.trim() || itemsToSave.map((i) => i.menuItem.name).join(' + ');
+
+    const newCombo: UsualCombo = {
+      id: `combo-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+      orderId,
+      title: resolvedTitle,
+      items: itemsToSave,
+      totalPrice: totalComboPrice,
+      savedAt: new Date().toLocaleDateString([], {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+    };
+
+    const updated = [newCombo, ...usualCombos];
+    setUsualCombos(updated);
+    try {
+      localStorage.setItem(USUAL_COMBOS_STORAGE_KEY, JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+
+    try {
+      confetti({
+        particleCount: 85,
+        spread: 75,
+        origin: { y: 0.6 },
+        colors: ['#8C5332', '#C29B63', '#FAF7F2', '#3D2517'],
+      });
+    } catch {
+      // ignore
+    }
+
+    return newCombo;
+  };
+
   const saveOrderAsCombo = (order: Order, customTitle?: string, selectedItemIds?: string[]) => {
     const targetItems =
       selectedItemIds && selectedItemIds.length > 0
@@ -774,47 +819,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       totalPrice: i.totalPrice,
     }));
 
-    const totalComboPrice = itemsToSave.reduce((acc, curr) => acc + curr.totalPrice, 0);
     const itemNames = itemsToSave.map((i) => i.menuItem.name).join(' + ');
-    const title = customTitle || `Combo: ${itemNames}`;
-
-    const newCombo: UsualCombo = {
-      id: `combo-${order.id}-${Date.now()}`,
-      orderId: order.id,
-      title,
-      items: itemsToSave,
-      totalPrice: totalComboPrice,
-      savedAt: new Date().toLocaleDateString([], {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      }),
-    };
-
-    const updated = [newCombo, ...usualCombos.filter((c) => c.orderId !== order.id)];
-    setUsualCombos(updated);
-    try {
-      localStorage.setItem(USUAL_COMBOS_STORAGE_KEY, JSON.stringify(updated));
-    } catch {
-      // ignore
-    }
-
-    try {
-      confetti({
-        particleCount: 85,
-        spread: 75,
-        origin: { y: 0.6 },
-        colors: ['#E11D48', '#8C5332', '#FFB800', '#FAF7F2'],
-      });
-    } catch {
-      // ignore
-    }
-
-    return { combo: newCombo };
+    const title = customTitle || `Pair: ${itemNames}`;
+    const combo = createCustomCombo(title, itemsToSave, order.id);
+    return { combo };
   };
 
   const removeUsualCombo = (comboId: string) => {
-    const updated = usualCombos.filter((c) => c.id !== comboId && c.orderId !== comboId);
+    const updated = usualCombos.filter((c) => c.id !== comboId);
     setUsualCombos(updated);
     try {
       localStorage.setItem(USUAL_COMBOS_STORAGE_KEY, JSON.stringify(updated));
@@ -888,6 +900,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         removeUsualDrink,
         orderUsual,
         saveOrderAsCombo,
+        createCustomCombo,
         removeUsualCombo,
         orderCombo,
         isOrderSavedAsCombo,

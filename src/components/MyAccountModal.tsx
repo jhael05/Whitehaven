@@ -23,7 +23,7 @@ import {
   ExternalLink,
   Gift,
   Heart,
-  Zap,
+  Layers,
 } from 'lucide-react';
 
 interface MyAccountModalProps {
@@ -581,8 +581,8 @@ export const MyAccountModal: React.FC<MyAccountModalProps> = ({
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold uppercase tracking-wider text-[#8C5332] flex items-center gap-1.5">
-                          <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
-                          <span>Saved 1-Click Combos ({usualCombos.length})</span>
+                          <Layers className="w-3.5 h-3.5 text-[#8C5332]" />
+                          <span>Saved Combo Pairs ({usualCombos.length})</span>
                         </span>
                       </div>
 
@@ -590,13 +590,13 @@ export const MyAccountModal: React.FC<MyAccountModalProps> = ({
                         {usualCombos.map((combo) => (
                           <div
                             key={combo.id}
-                            className="rounded-2xl border-2 border-amber-300 bg-white p-4 shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+                            className="rounded-2xl border-2 border-[#D8C7B6] bg-white p-4 shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
                           >
                             <div>
                               <div className="flex items-center justify-between pb-2 border-b border-amber-100">
-                                <span className="text-[10px] font-bold bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                                  <Zap className="w-3 h-3 text-amber-600 fill-amber-500" />
-                                  <span>1-Click Combo</span>
+                                <span className="text-[10px] font-bold bg-[#F5ECE2] text-[#8C5332] px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-[#D8C7B6]">
+                                  <Layers className="w-3 h-3 text-[#8C5332]" />
+                                  <span>Artisan Combo Pair</span>
                                 </span>
                                 <button
                                   type="button"
@@ -661,12 +661,12 @@ export const MyAccountModal: React.FC<MyAccountModalProps> = ({
                                 onClick={() => {
                                   orderCombo(combo);
                                   onClose();
-                                  onShowToast(`⚡ Added "${combo.title}" combo to cart!`);
+                                  onShowToast(`✨ Added "${combo.title}" combo pair to cart!`);
                                 }}
                                 className="px-4 py-2 rounded-xl bg-[#8C5332] hover:bg-[#6F3E22] text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5 active:scale-95 cursor-pointer"
                               >
-                                <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
-                                <span>1-Click Order Combo</span>
+                                <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+                                <span>1-Click Order Pair</span>
                               </button>
                             </div>
                           </div>
@@ -754,7 +754,7 @@ export const MyAccountModal: React.FC<MyAccountModalProps> = ({
                                 }}
                                 className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-[#8C5332] hover:from-rose-500 hover:to-[#6F3E22] text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
                               >
-                                <Zap className="w-3.5 h-3.5 text-amber-300" />
+                                <Sparkles className="w-3.5 h-3.5 text-amber-200" />
                                 <span>1-Click Order (₱{usual.price})</span>
                               </button>
                             </div>
